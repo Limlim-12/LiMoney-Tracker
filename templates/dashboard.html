@@ -1,0 +1,306 @@
+{% extends "base.html" %} {% block title %}Dashboard - LiMoney{% endblock %} {%
+block content %}
+<div class="dashboard-wrapper">
+  <header class="dash-header">
+    <div class="header-text">
+      <h1 id="greeting">Welcome back,</h1>
+      <span class="user-name">
+        {{ username | capitalize }}! <span class="header-icon">👋</span>
+      </span>
+    </div>
+
+    <div class="header-actions">
+      <p class="current-date" id="currentDate"></p>
+    
+      <button class="privacy-toggle mobile-theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode"
+        style="margin-right: 8px;">
+        <span class="theme-icon-visual"></span>
+      </button>
+    
+      <button id="privacy-btn" class="privacy-toggle" onclick="togglePrivacy()" title="Hide/Show Balances">
+        <span style="font-size: 1.2rem">👁️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="stats-grid">
+    <div class="stat-card hero-card">
+      <div class="card-decoration"></div>
+      <div class="stat-content">
+        <h3>Total Net Balance</h3>
+        <h2>
+          {{ "-" if net_balance < 0 else "" }}₱{{ "%.2f"|format(net_balance|abs)
+          }}
+        </h2>
+        <p class="stat-sub">(Wallet + Savings) - Debts</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="icon-box green">🐷</span>
+        <span class="trend-indicator up">Safe</span>
+      </div>
+      <div class="stat-content">
+        <h3>Total Savings</h3>
+        <h2 class="privacy-sensitive text-success">
+          ₱{{ "%.2f"|format(total_savings) }}
+        </h2>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="icon-box orange">🏦</span>
+        <span class="trend-indicator down">Active</span>
+      </div>
+      <div class="stat-content">
+        <h3>Total Debt</h3>
+        <h2 class="privacy-sensitive text-danger">
+          ₱{{ "%.2f"|format(total_debt) }}
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-section" style="margin-bottom: 2rem">
+    <div
+      class="section-header-row"
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      "
+    >
+      <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary)">
+        💳 Quick Wallet
+      </h3>
+      <a
+        href="{{ url_for('profile') }}"
+        class="see-all-link"
+        style="
+          font-size: 0.9rem;
+          color: var(--primary-color);
+          text-decoration: none;
+          font-weight: 600;
+        "
+        >Manage Cards →</a
+      >
+    </div>
+
+    <div class="mini-wallet-carousel">
+      {% if cards %} {% for card in cards %}
+      <div class="credit-card small {{ card.color_theme }}">
+        <div class="card-shine"></div>
+        <div class="card-top">
+          <span class="bank-name">{{ card.bank_name }}</span>
+          <div class="card-chip small">
+            <div class="chip-line"></div>
+            <div class="chip-line"></div>
+          </div>
+        </div>
+        <div class="card-number">
+          <span>•••• {{ card.last_four }}</span>
+        </div>
+        <div class="card-bottom">
+          <div class="card-balance">
+            <small>{{ card.usage_tag }}</small>
+            <span class="privacy-sensitive"
+              >₱{{ "%.0f"|format(card.balance) }}</span
+            >
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <a href="{{ url_for('profile') }}" class="add-card-placeholder">
+        <div class="plus-icon">+</div>
+        <span>Add Card</span>
+      </a>
+      {% else %}
+      <div
+        class="empty-wallet-state"
+        style="
+          text-align: center;
+          padding: 2rem;
+          background: var(--bg-white);
+          border-radius: 16px;
+          border: 1px dashed var(--border-color);
+          width: 100%;
+        "
+      >
+        <p style="color: var(--text-light); margin-bottom: 0.5rem">
+          No cards linked yet.
+        </p>
+        <a
+          href="{{ url_for('profile') }}"
+          class="btn-link"
+          style="
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+          "
+          >Add your first card</a
+        >
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="content-col-left">
+      <div class="dash-card transaction-card">
+        <div class="card-header">
+          <h3>📜 Recent Activity</h3>
+          <a href="#" class="view-all">View All</a>
+        </div>
+
+        <div class="transaction-list">
+          {% if transactions %} {% for t in transactions[:5] %}
+          <div class="txn-row">
+            <div
+              class="txn-icon {{ 'deposit' if t.type == 'income' else 'expense' }}"
+            >
+              {{ '⬇️' if t.type == 'income' else '↗️' }}
+            </div>
+            <div class="txn-details">
+              <span class="txn-desc">{{ t.description }}</span>
+              <span class="txn-date">{{ t.created_at | datetimeformat }}</span>
+            </div>
+            <div
+              class="txn-amount {{ 'positive' if t.type == 'income' else 'negative' }}"
+            >
+              <span class="privacy-sensitive">
+                {{ '+' if t.type == 'income' else '-' }}₱{{
+                "%.2f"|format(t.amount) }}
+              </span>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div class="empty-state">
+            <p>No recent transactions found.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="content-col-right">
+      <div class="dash-card action-card">
+        <div class="card-header">
+          <h3>⚡ Quick Add</h3>
+        </div>
+        <form method="POST" action="{{ url_for('add') }}" class="quick-form">
+          <div class="form-group">
+            <input
+              type="text"
+              name="description"
+              placeholder="What did you spend on?"
+              required
+              class="modern-input"
+            />
+          </div>
+          <div class="form-row">
+            <input
+              type="number"
+              step="0.01"
+              name="amount"
+              placeholder="0.00"
+              required
+              class="modern-input"
+            />
+            <select name="type" class="modern-select">
+              <option value="daily">Daily Exp.</option>
+              <option value="income">Income</option>
+              <option value="savings">To Savings</option>
+            </select>
+          </div>
+          <button type="submit" class="action-btn">Add Transaction</button>
+        </form>
+      </div>
+
+      <div class="dash-card chart-card">
+        <div class="card-header">
+          <h3>📊 Loan Overview</h3>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="loanChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // 1. Dynamic Greeting & Date
+  const hour = new Date().getHours();
+  const greetElement = document.getElementById('greeting');
+  let greetingText = 'Good Morning,';
+  if (hour >= 12 && hour < 18) greetingText = 'Good Afternoon,';
+  if (hour >= 18) greetingText = 'Good Evening,';
+  greetElement.innerText = greetingText;
+
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('currentDate').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+
+ 
+  // 2. Privacy Mode Toggle
+    let isHidden = false;
+    function togglePrivacy() {
+      isHidden = !isHidden;
+      const sensitiveElements = document.querySelectorAll('.privacy-sensitive');
+
+      // FIX: Select by specific ID, not generic class
+      const btn = document.getElementById('privacy-btn');
+
+      // Change text: 🙈 (Monkey) or 👁️ (Eye)
+      btn.innerText = isHidden ? '🙈' : '👁️';
+
+      sensitiveElements.forEach(el => {
+        if (isHidden) {
+          el.dataset.original = el.innerText;
+          el.innerText = '••••••';
+          el.classList.add('blurred');
+        } else {
+          el.innerText = el.dataset.original;
+          el.classList.remove('blurred');
+        }
+      });
+    }
+
+  // 3. Loan Chart
+  const ctx = document.getElementById("loanChart").getContext("2d");
+  const loanLabels = {{ loan_labels | safe }};
+  const loanTotal = {{ loan_totals | safe }};
+  const loanPaid = {{ loan_paids | safe }};
+
+  if(loanLabels.length > 0) {
+      new Chart(ctx, {
+          type: "doughnut",
+          data: {
+              labels: loanLabels,
+              datasets: [{
+                  data: loanTotal.map((total, i) => total - loanPaid[i]),
+                  backgroundColor: [
+                      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
+                  ],
+                  borderWidth: 0,
+                  hoverOffset: 10
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '70%',
+              plugins: {
+                  legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+              }
+          }
+      });
+  } else {
+      document.querySelector('.chart-wrapper').innerHTML = "<p style='text-align:center; color:#aaa; padding:20px;'>No active loans to display.</p>";
+  }
+</script>
+{% endblock %}

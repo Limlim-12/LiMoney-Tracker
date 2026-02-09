@@ -1,0 +1,308 @@
+{% extends "base.html" %} {% block title %}Smart Budget - LiMoney{% endblock %}
+{% block content %}
+<div class="budget-wrapper">
+  <div class="budget-main">
+    <div class="section-header">
+    <div>
+      <h1><span class="header-icon">📊</span> Budget Overview</h1>
+      <p class="section-subtitle">
+        Manage your spending limits and track expenses.
+      </p>
+    </div>
+      <div class="total-budget-badge">
+        <span class="badge-label">Total Planned</span>
+        <span class="badge-amount" id="totalPlanned">₱0.00</span>
+      </div>
+    </div>
+
+    <div class="budget-chart-container">
+      <canvas id="spendingChart"></canvas>
+    </div>
+
+    <h3 class="subsection-title">Your Categories</h3>
+    <div class="category-grid">
+      {% for category in categories %} {% set pct = 0 %} {% if
+      category.planned_budget > 0 %} {% set pct = (category.actual_spent /
+      category.planned_budget) * 100 %} {% endif %}
+
+      <div class="budget-card">
+        <div class="budget-card-header">
+          <span class="cat-icon" data-name="{{ category.name }}">📂</span>
+          <div class="cat-info">
+            <h4>{{ category.name }}</h4>
+            <span class="cat-status">{{ "%.0f"|format(pct) }}% Used</span>
+          </div>
+          <button
+            class="edit-budget-btn"
+            onclick="openBudgetModal('{{ category.id }}', '{{ category.name }}', '{{ category.planned_budget }}')"
+          >
+            ✏️
+          </button>
+        </div>
+
+        <div class="budget-progress-container">
+          <div class="progress-bar-bg">
+            <div
+              class="progress-bar-fill {{ 'safe' if pct < 75 else ('warning' if pct < 100 else 'danger') }}"
+              style="width: {{ 100 if pct > 100 else pct }}%"
+            ></div>
+          </div>
+        </div>
+
+        <div class="budget-card-footer">
+          <div class="stat-group">
+            <span class="stat-label">Spent</span>
+            <span class="stat-val"
+              >₱{{ "%.2f"|format(category.actual_spent) }}</span
+            >
+          </div>
+          <div class="stat-group right">
+            <span class="stat-label">Left</span>
+            <span
+              class="stat-val {{ 'text-danger' if category.planned_budget - category.actual_spent < 0 else 'text-success' }}"
+            >
+              ₱{{ "%.2f"|format(category.planned_budget - category.actual_spent)
+              }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="budget-sidebar">
+    <div class="tool-card accent-card">
+      <h3>💸 Add Expense</h3>
+      <form
+        method="POST"
+        action="{{ url_for('add_budget') }}"
+        class="tool-form"
+      >
+        <div class="form-group">
+          <label>Description</label>
+          <input
+            type="text"
+            name="expense_name"
+            placeholder="e.g. Starbucks"
+            required
+            class="tool-input"
+          />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount</label>
+            <input
+              type="number"
+              step="0.01"
+              name="expense_amount"
+              placeholder="0.00"
+              required
+              class="tool-input"
+            />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category_id" required class="tool-select">
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <input type="hidden" name="expense_type" value="daily" />
+        <input type="hidden" name="savings_id" value="" />
+
+        <button type="submit" class="tool-btn">Track Expense</button>
+      </form>
+    </div>
+
+    <div class="tool-card">
+      <h3>🎯 Set Limit</h3>
+      <form
+        method="POST"
+        action="{{ url_for('set_planned_budget') }}"
+        class="tool-form"
+      >
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category_id" required class="tool-select">
+            {% for category in categories %}
+            <option value="{{ category.id }}">{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Monthly Limit (₱)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="planned_budget"
+            placeholder="5000.00"
+            required
+            class="tool-input"
+          />
+        </div>
+        <button type="submit" class="tool-btn secondary">Update Budget</button>
+      </form>
+    </div>
+
+    <div class="tool-card history-card">
+      <h3>📜 History</h3>
+      <div class="mini-history-list">
+        {% if transactions %} {% for txn in transactions[:8] %}
+        <div class="mini-txn-row">
+          <div class="mini-txn-info">
+            <span class="mini-txn-desc">{{ txn.description }}</span>
+            <span class="mini-txn-cat">{{ txn.category_name }}</span>
+          </div>
+          <div class="mini-txn-amount">
+            -₱{{ "%.0f"|format(txn.amount) }}
+            <a
+              href="{{ url_for('delete_budget', id=txn.id) }}"
+              class="mini-delete"
+              title="Delete"
+              >×</a
+            >
+          </div>
+        </div>
+        {% endfor %} {% else %}
+        <p class="empty-text">No expenses yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="budgetModal" class="modal-overlay" style="display: none">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Edit Budget Limit</h3>
+      <button onclick="closeBudgetModal()" class="close-modal-btn">×</button>
+    </div>
+    <form
+      method="POST"
+      action="{{ url_for('set_planned_budget') }}"
+      class="tool-form"
+    >
+      <input type="hidden" name="category_id" id="modalCatId" />
+
+      <div class="form-group">
+        <label
+          >Category:
+          <span
+            id="modalCatName"
+            style="font-weight: bold; color: var(--primary-color)"
+          ></span
+        ></label>
+      </div>
+
+      <div class="form-group">
+        <label>New Limit (₱)</label>
+        <input
+          type="number"
+          id="modalPlannedBudget"
+          name="planned_budget"
+          step="0.01"
+          required
+          class="tool-input"
+          style="border: 1px solid #ccc; background: #fff"
+        />
+      </div>
+
+      <div
+        class="modal-actions"
+        style="display: flex; gap: 10px; margin-top: 10px"
+      >
+        <button
+          type="button"
+          onclick="closeBudgetModal()"
+          class="tool-btn secondary"
+          style="background: #e2e8f0; color: #475569"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="tool-btn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // 1. Modal Logic
+  function openBudgetModal(id, name, currentLimit) {
+      document.getElementById('budgetModal').style.display = 'flex';
+      document.getElementById('modalCatId').value = id;
+      document.getElementById('modalCatName').innerText = name;
+      document.getElementById('modalPlannedBudget').value = currentLimit;
+  }
+
+  function closeBudgetModal() {
+      document.getElementById('budgetModal').style.display = 'none';
+  }
+
+  // Close modal if clicking outside content
+  document.getElementById('budgetModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+          closeBudgetModal();
+      }
+  });
+
+  // 2. Auto-Assign Icons
+  const iconMap = {
+      'Food': '🍔', 'Drink': '🥤', 'Transport': '🚌', 'Gas': '⛽',
+      'Rent': '🏠', 'Bill': '💡', 'Utility': '⚡', 'Grocer': '🛒',
+      'Shop': '🛍️', 'Fun': '🎉', 'Health': '💊', 'Invest': '📈'
+  };
+
+  document.querySelectorAll('.cat-icon').forEach(el => {
+      const name = el.dataset.name;
+      let icon = '📂';
+      for (const key in iconMap) {
+          if (name.includes(key)) {
+              icon = iconMap[key];
+              break;
+          }
+      }
+      el.innerText = icon;
+  });
+
+  // 3. Spending Chart
+  const ctx = document.getElementById('spendingChart').getContext('2d');
+  const labels = [];
+  const data = [];
+  let totalPlanned = 0;
+
+  {% for category in categories %}
+      labels.push("{{ category.name }}");
+      data.push({{ category.actual_spent }});
+      totalPlanned += {{ category.planned_budget }};
+  {% endfor %}
+
+  document.getElementById('totalPlanned').innerText = "₱" + totalPlanned.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+  new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+          labels: labels,
+          datasets: [{
+              data: data,
+              backgroundColor: [
+                  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'
+              ],
+              borderWidth: 0,
+              hoverOffset: 10
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+              legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } }
+          },
+          layout: { padding: 20 }
+      }
+  });
+</script>
+{% endblock %}

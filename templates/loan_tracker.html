@@ -1,0 +1,431 @@
+{% extends "base.html" %} {% block title %}Debt Crusher - LiMoney{% endblock %}
+{% block content %}
+<div class="loan-wrapper">
+  <div class="loan-header">
+    <div>
+      <h1><span class="header-icon">🛡️</span> Debt Crusher</h1>
+      <p class="section-subtitle">Destroy your debt, one payment at a time.</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1rem">
+      <div class="view-controls">
+        <button
+          class="view-btn active"
+          onclick="setLoanView('grid')"
+          id="btn-grid-loan"
+          title="Grid View"
+        >
+          ⊞
+        </button>
+        <button
+          class="view-btn"
+          onclick="setLoanView('stack')"
+          id="btn-stack-loan"
+          title="Stack View"
+        >
+          ☰
+        </button>
+      </div>
+
+      <button class="add-loan-btn" onclick="openAddLoanModal()">
+        <span>+</span> New Loan
+      </button>
+    </div>
+  </div>
+
+  <div class="loan-grid">
+    {% if active_loans %} {% for loan in active_loans %} {% set total_paid =
+    get_total_loan_payments(loan.id) %} {% set pct = (total_paid / loan.amount)
+    * 100 %} {% set remaining = loan.amount - total_paid %}
+
+    <div class="loan-card">
+      <div class="loan-card-top">
+        <div class="loan-icon" data-name="{{ loan.loan_name }}">🏦</div>
+        <div class="loan-status-badge">Active</div>
+        <div class="loan-menu">
+          <form
+            action="{{ url_for('delete_loan', loan_id=loan.id) }}"
+            method="POST"
+            onsubmit="return confirmAction(event, this, '{{ loan.loan_name }}', 'Loan')"
+          >
+            <button type="submit" class="icon-btn delete-loan" title="Delete">
+              🗑️
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="loan-info">
+        <h3>{{ loan.loan_name }}</h3>
+        <p class="loan-dates">
+          {{ loan.start_date | datetimeformat }} — {{ loan.end_date |
+          datetimeformat }}
+        </p>
+      </div>
+
+      <div class="loan-progress-section">
+        <div class="progress-labels">
+          <span>Paid: ₱{{ "%.2f"|format(total_paid) }}</span>
+          <span>{{ "%.0f"|format(pct) }}%</span>
+        </div>
+        <div class="loan-progress-bar">
+          <div class="loan-progress-fill" style="width: {{ pct }}%"></div>
+        </div>
+        <div class="remaining-balance">
+          <span
+            >Remaining:
+            <b class="text-danger">₱{{ "%.2f"|format(remaining) }}</b></span
+          >
+        </div>
+      </div>
+
+      <div class="loan-actions">
+        <div class="monthly-due">
+          <small>Monthly Due</small>
+          <strong>₱{{ "%.2f"|format(loan.monthly_payment) }}</strong>
+        </div>
+        <button
+          class="pay-btn"
+          onclick="openPayModal('{{ loan.id }}', '{{ loan.loan_name }}', '{{ loan.monthly_payment }}')"
+        >
+          💸 Pay Now
+        </button>
+      </div>
+
+      <button
+        class="view-history-btn"
+        onclick="toggleHistory('hist-{{ loan.id }}')"
+      >
+        View Payment History ↓
+      </button>
+
+      <div
+        id="hist-{{ loan.id }}"
+        class="history-dropdown"
+        style="display: none"
+      >
+        {% set history = get_loan_payments(loan.id) %} {% if history %}
+        <ul class="history-list">
+          {% for pay in history %}
+          <li class="history-item deposit">
+            <div class="history-left">
+              <span class="history-type">💰 Payment</span>
+              <span
+                class="history-date local-time"
+                data-utc="{{ pay.created_at }}"
+              >
+                📅 {{ pay.created_at }}
+              </span>
+            </div>
+
+            <span class="history-amount text-success">
+              +₱{{ "%.2f"|format(pay.amount) }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div
+          style="text-align: center; padding: 1rem; color: var(--text-light)"
+        >
+          <p style="margin: 0">No payments yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🛡️</div>
+      <h3>You are Debt Free!</h3>
+      <p>Or maybe you just haven't added a loan yet.</p>
+      <button class="tool-btn" onclick="openAddLoanModal()">Add Loan</button>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if finished_loans %}
+  <div class="finished-section">
+    <h3 class="subsection-title">🏆 Trophy Room (Paid Off)</h3>
+    <div class="finished-grid">
+      {% for loan in finished_loans %}
+      <div class="finished-card">
+        <div class="finished-icon">🏅</div>
+        <div class="finished-info">
+          <h4>{{ loan.loan_name }}</h4>
+          <p>Fully Paid ₱{{ "%.2f"|format(loan.amount) }}</p>
+        </div>
+        <form
+          action="{{ url_for('delete_loan', loan_id=loan.id) }}"
+          method="POST"
+          onsubmit="return confirmAction(event, this, '{{ loan.loan_name }}', 'Loan')"
+        >
+          <button type="submit" class="icon-btn delete-loan" title="Remove">
+            ×
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div id="addLoanModal" class="modal-overlay" style="display: none">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Add New Loan</h3>
+      <button onclick="closeModal('addLoanModal')" class="close-modal-btn">
+        ×
+      </button>
+    </div>
+    <form method="POST" action="{{ url_for('add_loan') }}" class="tool-form">
+      <div class="form-group">
+        <label>Loan Name</label>
+        <input
+          type="text"
+          name="loan_name"
+          placeholder="e.g. Car Loan"
+          required
+          class="tool-input"
+        />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Total Amount (₱)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="loan_amount"
+            required
+            class="tool-input"
+          />
+        </div>
+        <div class="form-group">
+          <label>Monthly Due (₱)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="monthly_payment"
+            required
+            class="tool-input"
+          />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" name="start_date" required class="tool-input" />
+        </div>
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" name="end_date" required class="tool-input" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea
+          name="notes"
+          class="tool-input"
+          placeholder="Interest rate, bank details..."
+        ></textarea>
+      </div>
+      <button type="submit" class="tool-btn">Track Loan</button>
+    </form>
+  </div>
+</div>
+
+<div id="payLoanModal" class="modal-overlay" style="display: none">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Record Payment</h3>
+      <button onclick="closeModal('payLoanModal')" class="close-modal-btn">
+        ×
+      </button>
+    </div>
+    <form id="payForm" method="POST" action="" class="tool-form">
+      <div class="form-group">
+        <label
+          >Loan: <span id="payLoanName" class="highlight-text"></span
+        ></label>
+      </div>
+      <div class="form-group">
+        <label>Amount (₱)</label>
+        <input
+          type="number"
+          step="0.01"
+          name="pay_amount"
+          id="payAmount"
+          required
+          class="tool-input"
+        />
+      </div>
+      <div class="form-group">
+        <label>Date Paid</label>
+        <input
+          type="date"
+          name="pay_date"
+          value="{{ current_date }}"
+          required
+          class="tool-input"
+        />
+      </div>
+      <button
+        type="submit"
+        class="tool-btn"
+        style="background: var(--success-color)"
+      >
+        Confirm Payment
+      </button>
+    </form>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay" style="display: none">
+  <div class="modal-content confirmation">
+    <div class="confirm-icon-bg">⚠️</div>
+    <h3 class="confirm-title" id="confirmTitle">Delete Item?</h3>
+    <p class="confirm-text" id="confirmText">
+      Are you sure you want to remove this? This action cannot be undone.
+    </p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn-confirm-delete" onclick="executeDelete()">
+        Yes, Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- 1. History Toggle & Time Formatting ---
+  function toggleHistory(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === "none") {
+      el.style.display = "block";
+      updateTimes(el);
+    } else {
+      el.style.display = "none";
+    }
+  }
+
+  function updateTimes(container) {
+    const timeElements = container.querySelectorAll(".local-time");
+    timeElements.forEach((el) => {
+      const utcRaw = el.dataset.utc;
+      if (!utcRaw) return;
+
+      // Convert UTC to JS Date
+      const utcDate = new Date(utcRaw.replace(" ", "T") + "Z");
+
+      // Format to local friendly style
+      const options = {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      };
+      // Check if date is valid, else fallback
+      if (!isNaN(utcDate.getTime())) {
+        el.innerText = "📅 " + utcDate.toLocaleDateString(undefined, options);
+      }
+    });
+  }
+
+  // --- 2. Confirmation Modal Logic ---
+  let formToDelete = null;
+
+  function confirmAction(event, form, name, type) {
+    event.preventDefault();
+    formToDelete = form;
+    document.getElementById("confirmTitle").innerText = `Delete ${type}?`;
+    document.getElementById("confirmText").innerText =
+      `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+    document.getElementById("confirmModal").style.display = "flex";
+  }
+
+  function executeDelete() {
+    if (formToDelete) formToDelete.submit();
+  }
+
+  function closeConfirmModal() {
+    document.getElementById("confirmModal").style.display = "none";
+    formToDelete = null;
+  }
+
+  // --- 3. Modal Logic ---
+  function openAddLoanModal() {
+    document.getElementById("addLoanModal").style.display = "flex";
+  }
+
+  function openPayModal(id, name, monthly) {
+    const modal = document.getElementById("payLoanModal");
+    const form = document.getElementById("payForm");
+
+    document.getElementById("payLoanName").innerText = name;
+    document.getElementById("payAmount").value = monthly;
+    form.action = `/pay-loan/${id}`;
+
+    modal.style.display = "flex";
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  window.onclick = function (event) {
+    if (event.target.classList.contains("modal-overlay")) {
+      event.target.style.display = "none";
+    }
+  };
+
+  // --- 4. Auto Icons ---
+  const loanMap = {
+    Car: "🚗",
+    Auto: "🚙",
+    Home: "🏠",
+    Mortgage: "🔑",
+    Student: "🎓",
+    School: "📚",
+    Personal: "👤",
+    Bank: "🏦",
+    Credit: "💳",
+    Card: "💳",
+    Emergency: "🚑",
+  };
+
+  document.querySelectorAll(".loan-icon").forEach((el) => {
+    const name = el.dataset.name;
+    for (const key in loanMap) {
+      if (name.includes(key) || name.includes(key.toLowerCase())) {
+        el.innerText = loanMap[key];
+        break;
+      }
+    }
+  });
+
+  // --- View Toggle Logic ---
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedView = localStorage.getItem("loanView") || "grid";
+    setLoanView(savedView);
+  });
+
+  function setLoanView(viewType) {
+    const container = document.querySelector(".loan-grid");
+    const btnGrid = document.getElementById("btn-grid-loan");
+    const btnStack = document.getElementById("btn-stack-loan");
+
+    if (viewType === "stack") {
+      container.classList.add("stack-view");
+      btnStack.classList.add("active");
+      btnGrid.classList.remove("active");
+    } else {
+      container.classList.remove("stack-view");
+      btnGrid.classList.add("active");
+      btnStack.classList.remove("active");
+    }
+
+    localStorage.setItem("loanView", viewType);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,4560 @@
+/* ===================================================================
+   LI'MONEY TRACKER - FINALIZED DESIGN SYSTEM (Dark Mode Ready)
+   ===================================================================
+   * Root Variables & Base Styles
+   * Reusable Components (Buttons, Forms, Cards)
+   * Navigation & Flash Messages
+   * Page-Specific Layouts (Account, Dashboard, Trackers, Profile)
+   * Responsive Design
+   =================================================================== */
+
+/* --- 1. Root Variables & Base Styles --- */
+:root {
+  /* --- Light Mode (Default) --- */
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --secondary-color: #66bb6a;
+  --success-color: #22c55e;
+  --warning-color: #f97316;
+  --danger-color: #ef4444;
+  --danger-hover: #c62828;
+
+  /* Typography */
+  --font-primary: "Inter", sans-serif;
+  --font-secondary: "Poppins", sans-serif;
+
+  --text-primary: #1e293b;
+  /* Dark Text */
+  --text-secondary: #475569;
+  /* Medium Text */
+  --text-light: #64748b;
+  /* Light Text */
+
+  /* Backgrounds & Borders */
+  --bg-body: #f1f5f9;
+  /* Light Gray Body */
+  --bg-white: #ffffff;
+  /* Pure White Card */
+  --bg-input: #ffffff;
+  /* White Input */
+  --bg-hover: #f8fafc;
+  /* Light Hover */
+  --border-color: #e2e8f0;
+
+  /* UI Elements */
+  --shadow-sm: 0 3px 15px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --border-radius: 16px;
+}
+
+/* --- Dark Mode Overrides --- */
+[data-theme="dark"] {
+  --primary-color: #60a5fa;
+  /* Lighter Blue */
+  --primary-hover: #3b82f6;
+
+  --text-primary: #f1f5f9;
+  /* Almost White */
+  --text-secondary: #cbd5e1;
+  /* Light Gray */
+  --text-light: #94a3b8;
+  /* Dim Gray */
+
+  --bg-body: #0f172a;
+  /* Deep Blue-Black Body */
+  --bg-white: #1e293b;
+  /* Dark Blue Card */
+  --bg-input: #334155;
+  /* Dark Input */
+  --bg-hover: #334155;
+  /* Dark Hover */
+  --border-color: #334155;
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+body {
+  font-family: var(--font-primary);
+  margin: 0;
+  padding: 1rem;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  box-sizing: border-box;
+
+  /* 🚫 REMOVED TRANSITION */
+  /* This ensures the background snaps to black INSTANTLY before your eyes can see white. */
+}
+
+/* Global Card Transition for Dark Mode */
+.stat-card,
+.dash-card,
+.credit-card,
+.budget-card,
+.goal-card,
+.loan-card,
+.profile-card,
+.modal-content,
+.sidebar {
+  background-color: var(--bg-white);
+  /* Ensures cards switch to dark */
+  border-color: var(--border-color);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Global Input Transition for Dark Mode */
+input,
+select,
+textarea {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- 2. Reusable Components --- */
+
+/* Page Container & Titles */
+.page-container,
+.loan-container,
+.savings-container,
+.budget-container,
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-title,
+.loan-title,
+.savings-title,
+.budget-title,
+.profile-title {
+  font-family: var(--font-secondary);
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.loan-section-title,
+.savings-section-title,
+.budget-section-title {
+  font-family: var(--font-secondary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+/* Buttons */
+.loan-button,
+.savings-button,
+.budget-btn,
+.profile-btn,
+.dashboard-button {
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+  background-color: var(--primary-color);
+  color: var(--bg-white);
+}
+
+.loan-button:hover,
+.savings-button:hover,
+.budget-btn:hover,
+.profile-btn:hover,
+.dashboard-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.loan-delete-btn,
+.savings-withdraw-btn {
+  background-color: var(--danger-color);
+}
+
+.loan-delete-btn:hover,
+.savings-withdraw-btn:hover {
+  background-color: var(--danger-hover);
+}
+
+/* Forms */
+.form-container,
+.loan-form-container,
+.savings-form-container,
+.profile-section,
+.add-transaction-container {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2.5rem;
+}
+
+.form-title,
+.transaction-title {
+  font-family: var(--font-secondary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+}
+
+.loan-form,
+.budget-form,
+.profile-form,
+.dashboard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.loan-input,
+.savings-input,
+.budget-form input,
+.budget-form select,
+.profile-form input,
+.dashboard-input,
+.dashboard-select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background-color: #f8fafc;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.loan-input:focus,
+.savings-input:focus,
+.budget-form input:focus,
+.budget-form select:focus,
+.profile-form input:focus,
+.dashboard-input:focus,
+.dashboard-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Cards */
+.loan-list,
+.savings-list,
+.category-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.loan-item,
+.savings-item,
+.category-card {
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.loan-item:hover,
+.savings-item:hover,
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- 3. Navigation & Flash Messages --- */
+
+.dashboard-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-white);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 1rem;
+  z-index: 100;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-logo {
+  font-family: var(--font-secondary);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.hamburger {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.nav-right {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+.nav-link.logout {
+  background-color: var(--danger-color);
+  color: var(--bg-white);
+}
+
+.nav-link.logout:hover {
+  background-color: var(--danger-hover);
+}
+
+.hamburger-menu {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 1rem;
+  background: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  z-index: 200;
+  animation: fadeIn 0.3s ease;
+  padding: 0.5rem;
+}
+
+.hamburger-menu.active {
+  display: flex;
+}
+
+.menu-item {
+  font-size: 1rem;
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.menu-item:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+.flash-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: 90%;
+  max-width: 400px;
+}
+
+.flash-message {
+  padding: 1rem;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  transition: all 0.5s ease;
+}
+
+.flash-message.success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.flash-message.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.flash-message.info {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* ===================================================================
+   MODERN AUTH LAYOUT (Login/Register)
+   =================================================================== */
+
+.auth-body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-primary);
+  background-color: var(--bg-white);
+  height: 100vh;
+  overflow: hidden;
+  /* Prevents scrollbars on full screen */
+}
+
+.auth-wrapper {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* --- Left Side: Visuals --- */
+.auth-visual {
+  flex: 1;
+  /* Takes up 50% width on desktop */
+  background: linear-gradient(135deg, var(--primary-color), #2563eb, #1e40af);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+/* Decorative pattern overlay */
+.auth-visual::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.6;
+}
+
+.visual-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 400px;
+}
+
+.brand-logo {
+  font-family: var(--font-secondary);
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.brand-quote {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.visual-glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+/* --- Right Side: Form --- */
+.auth-form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: var(--bg-white);
+  position: relative;
+  overflow-y: auto;
+}
+
+.form-content {
+  width: 100%;
+  max-width: 420px;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.auth-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.auth-header h2 {
+  font-family: var(--font-secondary);
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.auth-subtitle {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* --- Form Elements --- */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-left: 0.2rem;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--text-light);
+  transition: color 0.3s ease;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 14px 14px 14px 48px;
+  /* Room for icon */
+  border: 2px solid var(--bg-light);
+  border-radius: 12px;
+  background-color: var(--bg-light);
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  font-family: var(--font-primary);
+}
+
+.auth-input:focus {
+  background-color: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.auth-input:focus+.input-icon,
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary-color);
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.toggle-password:hover {
+  opacity: 1;
+}
+
+.auth-button {
+  margin-top: 1rem;
+  padding: 16px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.auth-button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+}
+
+.auth-button:active {
+  transform: translateY(0);
+}
+
+.switch-link {
+  text-align: center;
+  margin-top: 2rem;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.switch-link a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.switch-link a:hover {
+  text-decoration: underline;
+}
+
+/* --- Flash Messages in Auth --- */
+.flash-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.flash-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.flash-message.error {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.flash-message.success {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* --- Responsive Mobile View --- */
+@media (max-width: 850px) {
+  .auth-wrapper {
+    flex-direction: column;
+  }
+
+  .auth-visual {
+    flex: none;
+    height: 30vh;
+    /* Takes top 30% on mobile */
+    padding: 1.5rem;
+  }
+
+  .brand-logo {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .brand-quote {
+    display: none;
+    /* Hide quote on small screens */
+  }
+
+  .visual-glass-card {
+    display: none;
+    /* Hide glass card on small screens */
+  }
+
+  .auth-form-container {
+    height: 70vh;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    margin-top: -20px;
+    /* Overlap effect */
+    z-index: 10;
+    justify-content: flex-start;
+    padding-top: 3rem;
+  }
+}
+
+/* ===================================================================
+   NEW DASHBOARD LAYOUT (Command Center)
+   =================================================================== */
+
+.dashboard-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* --- Header --- */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.header-text h1 {
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+.user-name {
+  font-family: var(--font-secondary);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: -webkit-linear-gradient(45deg, var(--primary-color), #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-actions {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.current-date {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.privacy-toggle {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.privacy-toggle:hover {
+  background: var(--bg-light);
+  transform: scale(1.1);
+}
+
+/* --- Stats Grid --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Hero Card (Balance) styling */
+.hero-card {
+  background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+  color: white;
+  grid-column: span 1;
+  /* Can change to span 2 for wider screens if needed */
+}
+
+.hero-card h3 {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.hero-card h2 {
+  font-size: 2.2rem;
+  margin: 0;
+  color: white;
+}
+
+.hero-card .stat-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: auto;
+}
+
+.card-decoration {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+/* Standard Stat Cards */
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.icon-box.green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.icon-box.orange {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.stat-content h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+}
+
+.stat-content h2 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+.text-danger {
+  color: var(--danger-color);
+}
+
+/* --- Main Layout Grid --- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  /* Left is wider */
+  gap: 1.5rem;
+}
+
+.dash-card {
+  background: var(--bg-white);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.card-header h3 {
+  font-family: var(--font-secondary);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.view-all {
+  font-size: 0.85rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Transaction List Styling */
+.txn-row {
+  display: flex;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--bg-light);
+  transition: background 0.2s;
+}
+
+.txn-row:last-child {
+  border-bottom: none;
+}
+
+.txn-row:hover {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin: 0 -0.5rem;
+}
+
+.txn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  font-size: 1rem;
+}
+
+.txn-icon.deposit {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.txn-icon.expense {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.txn-details {
+  flex-grow: 1;
+}
+
+.txn-desc {
+  display: block;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.txn-date {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.txn-amount {
+  font-weight: 700;
+}
+
+.txn-amount.positive {
+  color: var(--success-color);
+}
+
+.txn-amount.negative {
+  color: var(--text-primary);
+}
+
+/* Quick Actions & Forms */
+.content-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.quick-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modern-input,
+.modern-select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-light);
+  font-family: var(--font-primary);
+}
+
+.form-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  background: var(--text-primary);
+  /* Dark button for contrast */
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  background: black;
+}
+
+/* Privacy Blur Effect */
+.blurred {
+  filter: blur(5px);
+  user-select: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================================
+   APP SHELL (Sidebar, Bottom Nav, Layout)
+   =================================================================== */
+
+.app-body {
+  background-color: #f8fafc;
+  /* Very light gray bg */
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  /* Prevent body scroll, handle in main-content */
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* --- SIDEBAR (Desktop) --- */
+.sidebar {
+  width: 260px;
+  background: var(--bg-white);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  z-index: 50;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 3rem;
+  padding-left: 0.5rem;
+}
+
+.logo-icon {
+  font-size: 2rem;
+}
+
+.logo-text {
+  font-family: var(--font-secondary);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-grow: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-item:hover {
+  background-color: var(--bg-light);
+  color: var(--primary-color);
+  transform: translateX(5px);
+}
+
+.nav-item.active {
+  background-color: #eff6ff;
+  /* Light blue */
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.nav-item.logout {
+  color: var(--danger-color);
+  margin-top: auto;
+}
+
+.nav-item.logout:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.theme-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  text-align: left;
+}
+
+.theme-btn:hover {
+  background-color: var(--bg-light);
+}
+
+/* --- MAIN CONTENT AREA --- */
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  /* Scrollable content */
+  padding: 2rem;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* --- BOTTOM NAV (Mobile) --- */
+.bottom-nav {
+  display: none;
+  /* Hidden on desktop */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--bg-white);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+  padding: 0.8rem 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.b-nav-item {
+  color: var(--text-light);
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: color 0.2s;
+}
+
+.b-nav-item.active {
+  color: var(--primary-color);
+}
+
+/* Floating Action Button (FAB) in Center */
+.b-nav-fab-container {
+  position: relative;
+  top: -25px;
+}
+
+.b-nav-fab {
+  background: var(--primary-color);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s;
+}
+
+.b-nav-fab:active {
+  transform: scale(0.95);
+}
+
+/* --- TOAST MESSAGES (Redesigned Flash) --- */
+.flash-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flash-toast {
+  background: var(--bg-white);
+  padding: 1rem 1.2rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-left: 4px solid var(--primary-color);
+  min-width: 300px;
+}
+
+.flash-toast.success {
+  border-color: var(--success-color);
+}
+
+.flash-toast.error {
+  border-color: var(--danger-color);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* --- RESPONSIVE LOGIC --- */
+@media (max-width: 850px) {
+  .sidebar {
+    display: none;
+    /* Hide sidebar on mobile */
+  }
+
+  .bottom-nav {
+    display: flex;
+    /* Show bottom nav */
+  }
+
+  .main-content {
+    padding: 1rem;
+    padding-bottom: 90px;
+    /* Space for bottom nav */
+  }
+}
+
+/* ===================================================================
+   SMART BUDGET PAGE STYLES
+   =================================================================== */
+
+.budget-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.section-subtitle {
+  color: var(--text-light);
+  margin-top: 0.5rem;
+}
+
+/* Total Budget Badge */
+.total-budget-badge {
+  background: var(--bg-white);
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  text-align: right;
+  border: 1px solid var(--border-color);
+}
+
+.badge-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+/* Chart Container */
+.budget-chart-container {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  height: 300px;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- Category Grid --- */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.budget-card {
+  background: var(--bg-white);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+  border: 1px solid transparent;
+}
+
+.budget-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.budget-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cat-icon {
+  width: 45px;
+  height: 45px;
+  background: var(--bg-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.cat-info h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.cat-status {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+.edit-budget-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.edit-budget-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Progress Bars */
+.budget-progress-container {
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-light);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+
+.progress-bar-fill.safe {
+  background: var(--success-color);
+}
+
+.progress-bar-fill.warning {
+  background: var(--warning-color);
+}
+
+.progress-bar-fill.danger {
+  background: var(--danger-color);
+}
+
+.budget-card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.stat-val {
+  font-weight: 600;
+}
+
+.stat-group.right {
+  text-align: right;
+}
+
+.text-danger {
+  color: var(--danger-color);
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+/* --- Sidebar Tools --- */
+.budget-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tool-card {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-card.accent-card {
+  background: linear-gradient(135deg, var(--primary-color), #2563eb);
+  color: white;
+}
+
+.accent-card h3 {
+  color: white;
+  margin-top: 0;
+}
+
+.accent-card label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tool-input,
+.tool-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  font-family: var(--font-primary);
+}
+
+.accent-card .tool-input,
+.accent-card .tool-select {
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.accent-card .tool-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.accent-card option {
+  color: black;
+}
+
+/* Fix dropdown text color */
+
+.tool-btn {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.tool-btn:hover {
+  transform: translateY(-2px);
+}
+
+.tool-btn.secondary {
+  background: var(--text-primary);
+  color: white;
+}
+
+/* Mini History List */
+.mini-history-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-txn-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--bg-light);
+}
+
+.mini-txn-row:last-child {
+  border-bottom: none;
+}
+
+.mini-txn-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-txn-desc {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.mini-txn-cat {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.mini-txn-amount {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--danger-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-delete {
+  color: var(--text-light);
+  text-decoration: none;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.mini-delete:hover {
+  color: var(--danger-color);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .budget-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-sidebar {
+    order: -1;
+  }
+
+  /* Tools on top for mobile */
+}
+
+/* ===================================================================
+   MODAL STYLES (Popup)
+   =================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: scale(1);
+  animation: scaleUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+@keyframes scaleUp {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===================================================================
+   SAVINGS VAULT STYLES
+   =================================================================== */
+
+.savings-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.savings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.add-goal-btn {
+  background: var(--text-primary);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.add-goal-btn:hover {
+  transform: translateY(-3px);
+}
+
+.add-goal-btn span {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* --- Grid & Cards --- */
+.savings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.goal-card {
+  background: var(--bg-white);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s;
+  border: 1px solid var(--border-color);
+}
+
+.goal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.goal-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.goal-icon {
+  width: 45px;
+  height: 45px;
+  background: var(--bg-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.goal-menu {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.icon-btn.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.icon-btn.danger {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.icon-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+/* --- Circular Progress Ring --- */
+.goal-visual {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.progress-ring {
+  width: 120px;
+  height: 120px;
+  position: relative;
+}
+
+.progress-ring svg {
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg);
+  /* Start from top */
+}
+
+.progress-ring circle {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+/* Background Circle (Gray) */
+.progress-ring circle:nth-child(1) {
+  stroke: var(--bg-light);
+}
+
+/* Value Circle (Colored) */
+.progress-ring circle.progress-value {
+  stroke: var(--primary-color);
+  /* The circumference is 2 * PI * r (r=52) ≈ 327 */
+  stroke-dasharray: 327;
+  /* Offset calculates how much to hide based on percentage */
+  stroke-dashoffset: calc(327 - (327 * var(--percent)) / 100);
+  transition: stroke-dashoffset 1s ease-out;
+}
+
+/* Text Inside Ring */
+.ring-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.ring-pct {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* --- Bottom Stats --- */
+.goal-details h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.money-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.current-bal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.target-bal {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+
+/* --- Empty State --- */
+.empty-savings {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 20px;
+  border: 2px dashed var(--border-color);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.highlight-text {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+/* Specific style for Delete Button */
+.icon-btn.delete {
+  background: var(--bg-light);
+  color: var(--text-light);
+  margin-left: 4px;
+}
+
+.icon-btn.delete:hover {
+  background: #fee2e2;
+  color: var(--danger-color);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* ===================================================================
+   LOAN TRACKER STYLES
+   =================================================================== */
+
+.loan-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.loan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.add-loan-btn {
+  background: var(--text-primary);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.add-loan-btn:hover {
+  transform: translateY(-3px);
+}
+
+/* --- Active Loans --- */
+.loan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.loan-card {
+  background: var(--bg-white);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.loan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+.loan-card-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.loan-icon {
+  width: 45px;
+  height: 45px;
+  background: #fef2f2;
+  /* Light red bg */
+  color: #ef4444;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.loan-status-badge {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.loan-menu {
+  margin-left: auto;
+}
+
+.delete-loan {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.delete-loan:hover {
+  opacity: 1;
+  color: var(--danger-color);
+}
+
+.loan-info h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.loan-dates {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+/* Progress Bar */
+.loan-progress-section {
+  margin: 1.5rem 0;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  color: var(--text-secondary);
+}
+
+.loan-progress-bar {
+  height: 12px;
+  background: var(--bg-light);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.loan-progress-fill {
+  height: 100%;
+  background: linear-gradient(45deg,
+      var(--danger-color) 25%,
+      #ef4444 25%,
+      #ef4444 50%,
+      var(--danger-color) 50%,
+      var(--danger-color) 75%,
+      #ef4444 75%,
+      #ef4444 100%);
+  background-size: 20px 20px;
+  /* Stripes */
+  transition: width 0.6s ease;
+}
+
+.remaining-balance {
+  text-align: right;
+  margin-top: 5px;
+  font-size: 0.9rem;
+}
+
+/* Actions */
+.loan-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff1f2;
+  /* Very light red */
+  padding: 10px 15px;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.monthly-due {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.monthly-due small {
+  font-size: 0.75rem;
+  color: var(--danger-color);
+}
+
+.monthly-due strong {
+  color: #991b1b;
+}
+
+.pay-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.pay-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* History Dropdown */
+.view-history-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border-color);
+  padding: 8px;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.view-history-btn:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+.history-dropdown {
+  background: var(--bg-light);
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* --- Finished Loans --- */
+.finished-section {
+  margin-top: 3rem;
+  opacity: 0.8;
+}
+
+.finished-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.finished-card {
+  background: var(--bg-light);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--success-color);
+}
+
+.finished-icon {
+  font-size: 1.5rem;
+}
+
+.finished-info h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.finished-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+/* ===================================================================
+   PREMIUM PROFILE & WALLET STYLES
+   =================================================================== */
+
+.profile-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* --- Hero Section --- */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--primary-color), #60a5fa);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.profile-info h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--text-primary);
+}
+
+.profile-info .username {
+  color: var(--text-light);
+  margin: 0.2rem 0 1rem 0;
+}
+
+.profile-badges {
+  display: flex;
+  gap: 10px;
+}
+
+.badge {
+  background: var(--bg-light);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.badge.salary {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+/* --- Wallet Section --- */
+.wallet-section {
+  margin-bottom: 3rem;
+}
+
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cards-carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 1rem 0.5rem 2rem 0.5rem;
+  scroll-behavior: smooth;
+}
+
+/* Hide Scrollbar */
+.cards-carousel::-webkit-scrollbar {
+  height: 8px;
+}
+
+.cards-carousel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* --- Premium Credit Card --- */
+.credit-card {
+  flex: 0 0 320px;
+  height: 200px;
+  border-radius: 20px;
+  padding: 25px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.credit-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+/* Holographic Shine Effect */
+.card-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-25deg);
+  transition: left 0.5s;
+}
+
+.credit-card:hover .card-shine {
+  left: 200%;
+  transition: left 0.7s;
+}
+
+/* Existing Themes... */
+.credit-card.blue {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+}
+
+.credit-card.gold {
+  background: linear-gradient(135deg, #78350f, #d97706, #fbbf24);
+}
+
+.credit-card.black {
+  background: linear-gradient(135deg, #020617, #1e293b);
+}
+
+.credit-card.platinum {
+  background: linear-gradient(135deg, #334155, #94a3b8);
+}
+
+/* --- NEW THEMES --- */
+
+/* Maribank Style: Vibrant Orange */
+.credit-card.orange {
+  background: linear-gradient(135deg, #ea580c, #f97316, #fb923c);
+  color: white;
+}
+
+/* Optional: Make the chip look silver on orange cards for contrast */
+.credit-card.orange .card-chip {
+  background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+}
+
+/* GoTyme Style: Sleek Black into Cyan */
+.credit-card.cyan {
+  background: linear-gradient(135deg, #111827 40%, #0891b2 100%);
+  color: white;
+}
+
+/* Card Details */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  z-index: 2;
+}
+
+.card-chip {
+  width: 45px;
+  height: 35px;
+  background: linear-gradient(135deg, #fcd34d, #d97706);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+  z-index: 2;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.chip-line {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.chip-line:nth-child(1) {
+  top: 33%;
+  width: 100%;
+  height: 1px;
+}
+
+.chip-line:nth-child(2) {
+  top: 66%;
+  width: 100%;
+  height: 1px;
+}
+
+.chip-line:nth-child(3) {
+  left: 33%;
+  height: 100%;
+  width: 1px;
+  top: 0;
+}
+
+.chip-line:nth-child(4) {
+  left: 66%;
+  height: 100%;
+  width: 1px;
+  top: 0;
+}
+
+.card-number {
+  font-family: "Courier New", monospace;
+  font-size: 1.4rem;
+  letter-spacing: 3px;
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  z-index: 2;
+}
+
+.card-balance small {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.card-balance span {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.card-usage-tag {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  backdrop-filter: blur(4px);
+}
+
+.card-delete-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 10;
+}
+
+.credit-card:hover .card-delete-btn {
+  opacity: 1;
+}
+
+.card-delete-btn:hover {
+  background: #ef4444;
+}
+
+/* ===================================================================
+   PREMIUM PROFILE FORMS
+   =================================================================== */
+
+.profile-forms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.profile-card {
+  background: var(--bg-white);
+  padding: 2.5rem 2rem;
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Decorative Top Accents */
+.profile-card.personal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--primary-color), #60a5fa);
+}
+
+.profile-card.work::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--success-color), #34d399);
+}
+
+.card-header h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* --- Modern Input Fields --- */
+.premium-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-icon-span {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  opacity: 0.6;
+  pointer-events: none;
+  /* Let clicks pass through */
+  transition: opacity 0.3s;
+}
+
+.premium-input {
+  width: 100%;
+  padding: 14px 14px 14px 48px;
+  /* Space for icon */
+  border: 2px solid var(--bg-light);
+  border-radius: 12px;
+  background: var(--bg-light);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  transition: all 0.3s ease;
+}
+
+.premium-input:focus {
+  background: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.premium-input:focus+.input-icon-span {
+  opacity: 1;
+  color: var(--primary-color);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  margin-left: 4px;
+}
+
+/* --- Premium Save Button --- */
+.premium-save-btn {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--text-primary) 0%, #0f172a 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.premium-save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+}
+
+/* Work Card Variant Colors */
+.profile-card.work .premium-input:focus {
+  border-color: var(--success-color);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+}
+
+.profile-card.work .premium-save-btn {
+  background: linear-gradient(135deg, var(--success-color) 0%, #15803d 100%);
+}
+
+.profile-card.work .premium-save-btn:hover {
+  background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+}
+
+/* Responsive Stack */
+@media (max-width: 900px) {
+  .profile-forms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-forms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================================
+   DASHBOARD MINI-WALLET
+   =================================================================== */
+
+.dash-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.see-all-link {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.see-all-link:hover {
+  text-decoration: underline;
+}
+
+/* Carousel Container */
+.mini-wallet-carousel {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.5rem 1.5rem 0.5rem;
+  /* Padding for shadow/hover space */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* Smooth iOS scroll */
+}
+
+/* Hide scrollbar but keep functionality */
+.mini-wallet-carousel::-webkit-scrollbar {
+  height: 6px;
+}
+
+.mini-wallet-carousel::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* --- Mini Credit Card (Variant) --- */
+.credit-card.small {
+  flex: 0 0 240px;
+  /* Smaller fixed width */
+  height: 150px;
+  /* Smaller height */
+  padding: 18px;
+  border-radius: 16px;
+}
+
+/* Adjust internal elements for small size */
+.credit-card.small .card-number {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+}
+
+.credit-card.small .bank-name {
+  font-size: 0.85rem;
+}
+
+.credit-card.small .card-chip.small {
+  width: 32px;
+  height: 24px;
+  margin-top: 5px;
+}
+
+.credit-card.small .card-balance span {
+  font-size: 1.1rem;
+}
+
+/* Add Card Placeholder Button */
+.add-card-placeholder {
+  flex: 0 0 100px;
+  height: 150px;
+  border: 2px dashed var(--border-color);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-light);
+  text-decoration: none;
+  background: white;
+  transition: all 0.2s;
+}
+
+.add-card-placeholder:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: #eff6ff;
+  transform: translateY(-2px);
+}
+
+.plus-icon {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+/* Mobile Optimization for Wallet */
+@media (max-width: 600px) {
+  .mini-wallet-carousel {
+    scroll-snap-type: x mandatory;
+    padding-right: 20px;
+    /* Peek effect */
+  }
+
+  .credit-card.small {
+    flex: 0 0 220px;
+    height: 140px;
+    scroll-snap-align: start;
+  }
+
+  .add-card-placeholder {
+    scroll-snap-align: start;
+  }
+}
+
+/* ===================================================================
+   CONFIRMATION MODAL (Elevated Design)
+   =================================================================== */
+
+.modal-content.confirmation {
+  text-align: center;
+  max-width: 380px;
+  border-top: 5px solid var(--danger-color);
+  /* Red top accent */
+}
+
+.confirm-icon-bg {
+  width: 70px;
+  height: 70px;
+  background: #fee2e2;
+  color: #ef4444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.5rem auto;
+  box-shadow: 0 0 0 8px rgba(254, 226, 226, 0.4);
+  /* Pulse effect ring */
+}
+
+.confirm-title {
+  font-family: var(--font-secondary);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.confirm-text {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.confirm-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.btn-cancel {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.btn-confirm-delete {
+  background: var(--danger-color);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-confirm-delete:hover {
+  background: var(--danger-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4);
+}
+
+/* ===================================================================
+   TRANSACTION HISTORY (Modern Design)
+   =================================================================== */
+
+.history-dropdown {
+  background: var(--bg-white);
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--bg-light);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.history-item:hover {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translateX(2px);
+}
+
+/* Color Coding Borders */
+.history-item.deposit {
+  border-left-color: var(--success-color);
+}
+
+.history-item.withdraw {
+  border-left-color: var(--danger-color);
+}
+
+.history-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-type {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.history-date {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.history-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Scrollbar styling for history */
+.history-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* ===================================================================
+   VIEW TOGGLE (Card vs Stack)
+   =================================================================== */
+
+.view-controls {
+  display: flex;
+  gap: 5px;
+  background: var(--bg-white);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  margin-left: 1rem;
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-light);
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-btn:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+.view-btn.active {
+  background: var(--bg-light);
+  color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Stack View Modifier --- */
+/* When this class is added to the grid container, it forces a list layout */
+.stack-view {
+  grid-template-columns: 1fr !important;
+  /* Force single column */
+  max-width: 800px;
+  /* Limit width for readability */
+  margin: 0 auto;
+  /* Center the stack */
+}
+
+/* Optional: Make cards look more like "Rows" in stack view */
+.stack-view .goal-card,
+.stack-view .loan-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  /* Icon - Content - Actions */
+  align-items: center;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+/* Adjust internal elements for Stack View */
+.stack-view .goal-top,
+.stack-view .loan-card-top {
+  width: auto;
+  margin-bottom: 0;
+  display: contents;
+  /* Removes the wrapper div's box effect */
+}
+
+.stack-view .goal-visual,
+.stack-view .loan-progress-section {
+  display: none;
+  /* Hide big charts in stack view for compactness (Optional) */
+}
+
+/* OR keep charts but make them smaller: */
+/* .stack-view .goal-visual { margin-bottom: 0; transform: scale(0.6); } 
+*/
+
+/* On Mobile, force stack view regardless of toggle */
+@media (max-width: 600px) {
+  .view-controls {
+    display: none;
+  }
+}
+
+/* ===================================================================
+   PREMIUM MOBILE DASHBOARD (The "App" Feel)
+   =================================================================== */
+
+@media (max-width: 900px) {
+
+  /* --- 1. Compact Header --- */
+  .dash-header {
+    flex-direction: row;
+    /* Keep row layout on mobile */
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .header-text h1 {
+    font-size: 0.9rem;
+    /* Smaller "Welcome" */
+    opacity: 0.8;
+  }
+
+  .user-name {
+    font-size: 1.4rem;
+    /* Name stays readable */
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+  }
+
+  .current-date {
+    display: none;
+    /* Hide date on mobile to save space */
+  }
+
+  .privacy-toggle {
+    width: 40px;
+    height: 40px;
+    /* Larger touch target */
+    font-size: 1.2rem;
+    background: var(--bg-white);
+    box-shadow: var(--shadow-sm);
+    border: none;
+  }
+
+  /* --- 2. Horizontal Stats Carousel (The "Premium" Feature) --- */
+  .stats-grid {
+    display: flex;
+    /* Switch from Grid to Flex */
+    overflow-x: auto;
+    /* Enable horizontal scroll */
+    scroll-snap-type: x mandatory;
+    /* Snap to cards */
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    /* Space for shadow/scroll */
+    margin-right: -1rem;
+    /* Bleed to edge */
+    padding-right: 1rem;
+    /* Spacer at end */
+
+    /* Hide scrollbar */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .stats-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stat-card {
+    min-width: 85%;
+    /* Show 85% of card, peek the next one */
+    scroll-snap-align: center;
+    border-radius: 24px;
+    /* Rounder corners */
+    padding: 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    /* Softer shadow */
+  }
+
+  /* Make the Hero Card (Net Balance) pop */
+  .hero-card {
+    background: linear-gradient(145deg, var(--primary-color), #1e3a8a);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+  }
+
+  /* --- 3. Content Layout --- */
+  .main-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Cards go closer to edge */
+  .dash-card {
+    padding: 1.2rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* --- 4. Recent Activity (Modern List) --- */
+  .transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    /* Remove gap, use borders */
+  }
+
+  .txn-row {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    margin: 0;
+  }
+
+  .txn-row:last-child {
+    border-bottom: none;
+  }
+
+  .txn-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+    border-radius: 14px;
+    /* Soft square vs circle */
+  }
+
+  .txn-desc {
+    font-size: 0.95rem;
+  }
+
+  .txn-amount {
+    font-size: 1rem;
+  }
+
+  /* --- 5. Quick Add Form --- */
+  .action-card {
+    background: linear-gradient(to bottom right, var(--bg-white), #f8fafc);
+    border: 1px solid var(--primary-color);
+  }
+
+  .modern-input,
+  .modern-select {
+    padding: 14px;
+    /* Larger for fingers */
+    font-size: 16px;
+    /* No iOS zoom */
+    background: white;
+    border-color: #e2e8f0;
+  }
+
+  .action-btn {
+    padding: 16px;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* --- 6. Chart Card --- */
+  .chart-card {
+    margin-bottom: 80px;
+    /* Extra space at bottom so nav doesn't cover */
+  }
+
+  .chart-wrapper {
+    height: 250px;
+    /* Fixed height for mobile chart */
+  }
+}
+
+/* ===================================================================
+   PREMIUM WALLET UPGRADES
+   =================================================================== */
+
+/* --- 1. Privacy Blur --- */
+.wallet-section.privacy-active .card-balance span {
+  filter: blur(8px);
+  user-select: none;
+  opacity: 0.7;
+}
+
+.wallet-section.privacy-active .card-number span:not(:last-child) {
+  opacity: 0.5;
+}
+
+/* --- 2. 3D Tilt Physics --- */
+.credit-card {
+  /* Prepare for 3D space */
+  transform-style: preserve-3d;
+  transform: perspective(1000px);
+  will-change: transform;
+}
+
+/* When moving, remove transition lag for instant response */
+.credit-card.moving {
+  transition: none !important;
+}
+
+/* --- 3. Brand Logo Positioning --- */
+.card-logo {
+  height: 30px;
+  width: auto;
+  opacity: 0.9;
+}
+
+/* Privacy Toggle Button */
+.privacy-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-right: 10px;
+}
+
+.privacy-btn:hover {
+  background: var(--bg-light);
+  transform: scale(1.1);
+}
+
+/* ===================================================================
+   PREMIUM "ADD CARD" BUTTON
+   =================================================================== */
+
+.add-card-btn {
+  /* Premium Dark Gradient Background */
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: white;
+
+  /* Shape & Size */
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  /* Perfect Pill Shape */
+
+  /* Typography */
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+
+  /* Flexbox for icon alignment */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  /* Interactive Properties */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  /* Keeps the shine inside */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Subtle Depth Shadow */
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Top highlight */
+}
+
+/* --- Hover State: Lift & Glow --- */
+.add-card-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 15px rgba(0, 0, 0, 0.2),
+    0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg,
+      #334155 0%,
+      #1e293b 100%);
+  /* Slightly lighter */
+}
+
+/* --- Active State: Click --- */
+.add-card-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* --- The "Holographic Shine" Animation --- */
+.add-card-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-25deg);
+  transition: none;
+  /* Hidden by default */
+}
+
+.add-card-btn:hover::after {
+  left: 200%;
+  transition: left 0.6s ease-in-out;
+  /* Sweep across on hover */
+}
+
+/* ===================================================================
+   PREMIUM PITCH DARK MODE OVERRIDES
+   =================================================================== */
+
+[data-theme="dark"] {
+  /* --- The Palette: Deep Space --- */
+  --bg-body: #020204;
+  /* Almost pure black */
+  --bg-white: rgba(20, 20, 23, 0.65);
+  /* Translucent dark glass */
+  --bg-hover: rgba(255, 255, 255, 0.05);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-light: #64748b;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  /* Very subtle borders */
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.8);
+
+  /* Neon Accents for Dark Mode */
+  --primary-color: #60a5fa;
+  /* Lighter blue for contrast */
+  --glow-color: rgba(59, 130, 246, 0.5);
+}
+
+/* --- 1. Ambient Background (The "Vibe") --- */
+[data-theme="dark"] body {
+  background-color: var(--bg-body);
+  /* Subtle ambient light orbs in the background */
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 80%, rgba(139, 92, 246, 0.08), transparent 25%);
+  background-attachment: fixed;
+  /* Keeps lights in place while scrolling */
+}
+
+/* --- 2. Glassmorphism Cards --- */
+[data-theme="dark"] .goal-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .sidebar,
+[data-theme="dark"] .bottom-nav,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .profile-hero,
+[data-theme="dark"] .wallet-section,
+[data-theme="dark"] .history-dropdown {
+  background: var(--bg-white);
+  backdrop-filter: blur(12px);
+  /* The frosted glass effect */
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Thin light border */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* --- 3. Premium Interactive Glows --- */
+/* Hovering cards makes them "light up" */
+[data-theme="dark"] .goal-card:hover,
+[data-theme="dark"] .stat-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+  border-color: rgba(96, 165, 250, 0.4);
+  /* Blue border glow */
+  box-shadow:
+    0 10px 40px -10px rgba(0, 0, 0, 1),
+    0 0 15px -3px rgba(59, 130, 246, 0.2);
+  /* Neon glow */
+}
+
+/* --- 4. Typography Polish --- */
+/* Gradient Text for Headings */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] .brand-logo {
+  background: linear-gradient(to right, #ffffff, #cbd5e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+}
+
+/* --- 5. Inputs & Forms --- */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] .tool-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  color: white;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] .tool-input:focus {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+/* --- 6. Savings Rings & Charts --- */
+[data-theme="dark"] .progress-ring circle:nth-child(1) {
+  stroke: rgba(255, 255, 255, 0.05);
+  /* Very faint track */
+}
+
+[data-theme="dark"] .progress-ring circle:nth-child(2) {
+  filter: drop-shadow(0 0 8px var(--primary-color));
+  /* Neon line glow */
+}
+
+/* --- 7. Sidebar & Nav --- */
+[data-theme="dark"] .sidebar {
+  border-right: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .nav-item {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .nav-item:hover,
+[data-theme="dark"] .nav-item.active {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  box-shadow: inset 2px 0 0 0 var(--primary-color);
+  /* Left indicator */
+}
+
+/* --- 8. Modal Backdrop --- */
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.85);
+  /* Darker backdrop */
+  backdrop-filter: blur(5px);
+}
+
+/* --- 9. Scrollbar (Chrome/Safari) --- */
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #020204;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border: 2px solid #020204;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+
+/* ===================================================================
+   FIX: DASHBOARD BUTTONS (Dark Mode)
+   =================================================================== */
+/* 1. Apply the "Accent" Blue Border Style to Quick Add & Loan Chart */
+[data-theme="dark"] .action-card,
+[data-theme="dark"] .chart-card {
+  background: var(--bg-white);
+  /* Standard Dark Card BG */
+  border: 1px solid var(--primary-color);
+  /* The Blue Border Emphasis */
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 2. Make the Headers Blue inside these cards */
+[data-theme="dark"] .action-card h3,
+[data-theme="dark"] .chart-card h3 {
+  color: var(--primary-color);
+}
+
+/* 3. Glassy Button for Quick Add (Matches Budget Add Expense) */
+[data-theme="dark"] .action-card .action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Standard Text Color */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+  /* Remove the blue glow */
+}
+
+/* Hover Effect for the button */
+[data-theme="dark"] .action-card .action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+/* 2. Fix "Add Card" Placeholder (Mini Wallet) */
+/* It was hardcoded to white. We make it glass-like. */
+[data-theme="dark"] .add-card-placeholder {
+  background: rgba(255, 255, 255, 0.05);
+  /* Translucent glass */
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+}
+
+[data-theme="dark"] .add-card-placeholder:hover {
+  background: rgba(59, 130, 246, 0.15);
+  /* Subtle blue tint */
+  border-color: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+  /* Glow effect */
+  transform: translateY(-3px);
+}
+
+
+/* ===================================================================
+   FIX: BUDGET PAGE DARK MODE
+   =================================================================== */
+
+/* 1. Fix "Budget Overview" & Category Icons Visibility */
+/* We define a light background variable so icons pop against dark cards */
+[data-theme="dark"] {
+  --bg-light: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .cat-icon {
+  background: var(--bg-light);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .total-budget-badge {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* 2. Improve Category Cards (Make them Glassy & Visible) */
+[data-theme="dark"] .budget-card {
+  background: rgba(30, 41, 59, 0.7);
+  /* Semi-transparent Dark Blue */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Subtle border */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .budget-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(96, 165, 250, 0.4);
+  /* Blue glow on hover */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* 3. Fix "Add Expense" Form (Remove Blue Background) */
+/* We turn it into a standard dark premium card instead of bright blue */
+[data-theme="dark"] .tool-card.accent-card {
+  background: var(--bg-white);
+  border: 1px solid var(--primary-color);
+  /* Keep blue border for emphasis */
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .accent-card h3 {
+  color: var(--primary-color);
+  /* Header text becomes blue */
+}
+
+[data-theme="dark"] .accent-card label {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .accent-card .tool-btn,
+[data-theme="dark"] .accent-card button {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Visible Text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+  /* Remove the blue glow */
+}
+
+[data-theme="dark"] .accent-card .tool-btn:hover,
+[data-theme="dark"] .accent-card button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 4. Fix "Update Budget" Button (White on White Issue) */
+[data-theme="dark"] .tool-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Visible Text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .tool-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* 1. Apply Blue Border & Dark Theme to ALL Budget Cards */
+/* This covers: .accent-card (Add), .tool-card (Set Limit), .history-card (History) */
+[data-theme="dark"] .budget-wrapper .tool-card,
+[data-theme="dark"] .tool-card {
+  background: var(--bg-white);
+  /* Standard Dark Card BG */
+  border: 1px solid var(--primary-color);
+  /* The Premium Blue Border */
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 2. Make All Headers Blue */
+[data-theme="dark"] .tool-card h3 {
+  color: var(--primary-color);
+}
+
+/* 3. Fix Labels & Secondary Text */
+[data-theme="dark"] .tool-card label,
+[data-theme="dark"] .empty-text,
+[data-theme="dark"] .mini-txn-cat {
+  color: var(--text-secondary);
+}
+
+/* 4. Glassy Buttons (Universal Fix) */
+/* Applies to "Update Budget", "Add Expense", and any other buttons inside cards */
+[data-theme="dark"] .tool-card .tool-btn,
+[data-theme="dark"] .tool-card button {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Visible Text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+  /* No Blue Glow */
+}
+
+/* Button Hover Effects */
+[data-theme="dark"] .tool-card .tool-btn:hover,
+[data-theme="dark"] .tool-card button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 5. Fix History List Rows (Separators) */
+[data-theme="dark"] .mini-txn-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 6. Fix Delete "x" Button in History */
+[data-theme="dark"] .mini-delete {
+  color: var(--text-light);
+}
+
+[data-theme="dark"] .mini-delete:hover {
+  color: var(--danger-color);
+  background: none;
+  /* Prevent glass background on the small x */
+  box-shadow: none;
+}
+
+/* ===================================================================
+   UNIFIED SAVINGS STYLES (Matches Budget Accent Theme)
+   =================================================================== */
+
+/* --- 1. New Goal Button (Top Right) --- */
+/* Changes from Blue Gradient to Glassy Transparent in Dark Mode */
+[data-theme="dark"] .add-goal-btn {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Visible Text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .add-goal-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* --- 2. Savings Goal Card Style --- */
+/* Apply the "Accent Card" Look (Blue Border + Dark BG) */
+[data-theme="dark"] .goal-card {
+  background: var(--bg-white);
+  /* Standard Dark Card BG */
+  border: 1px solid var(--primary-color);
+  /* The Premium Blue Border */
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+}
+
+/* --- 3. Card Typography --- */
+/* Header Text becomes Blue */
+[data-theme="dark"] .goal-details h3 {
+  color: var(--primary-color);
+}
+
+/* Subtext/Labels become Secondary Gray */
+[data-theme="dark"] .target-bal,
+[data-theme="dark"] .ring-label {
+  color: var(--text-secondary);
+}
+
+/* --- 4. Card Buttons (Deposit, Withdraw, Delete) --- */
+/* Make all small circular buttons GLASSY instead of colored */
+[data-theme="dark"] .goal-card .icon-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Hover Effects (Restore color on hover) */
+[data-theme="dark"] .goal-card .icon-btn.success:hover {
+  background: rgba(16, 185, 129, 0.2);
+  /* Green Tint */
+  color: #34d399;
+  border-color: #34d399;
+}
+
+[data-theme="dark"] .goal-card .icon-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  /* Red Tint */
+  color: #f87171;
+  border-color: #f87171;
+}
+
+[data-theme="dark"] .goal-card .icon-btn.delete:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* --- 5. "View History" Button --- */
+[data-theme="dark"] .view-history-btn {
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Subtle border for clickability */
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .view-history-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ===================================================================
+   UNIFIED LOAN TRACKER STYLES (Matches Budget & Savings)
+   =================================================================== */
+
+/* --- 1. "New Loan" Button --- */
+/* Matches the "New Goal" and "Add Transaction" Glass Style */
+[data-theme="dark"] .add-loan-btn {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Visible Text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .add-loan-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* --- 2. Loan Card (The Main Card) --- */
+/* Apply the "Accent Card" Look (Blue Border + Dark BG) */
+[data-theme="dark"] .loan-card {
+  background: var(--bg-white);
+  /* Standard Dark Card BG */
+  border: 1px solid var(--primary-color);
+  /* The Premium Blue Border */
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+}
+
+/* --- 3. Card Typography --- */
+/* Loan Name becomes Blue */
+[data-theme="dark"] .loan-info h3 {
+  color: var(--primary-color);
+}
+
+/* Dates and Monthly Due Label become Gray */
+[data-theme="dark"] .loan-dates,
+[data-theme="dark"] .monthly-due small {
+  color: var(--text-secondary);
+}
+
+/* --- 4. Buttons Inside the Card --- */
+/* "Pay Now", "View History", and "Delete" Icon become Glassy */
+[data-theme="dark"] .loan-card .pay-btn,
+[data-theme="dark"] .loan-card .view-history-btn,
+[data-theme="dark"] .loan-card .icon-btn {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+/* Hover Effects */
+[data-theme="dark"] .loan-card .pay-btn:hover,
+[data-theme="dark"] .loan-card .view-history-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Delete Button Specific Hover (Red) */
+[data-theme="dark"] .loan-card .icon-btn.delete-loan:hover {
+  background: rgba(239, 68, 68, 0.2);
+  /* Red Tint */
+  color: #f87171;
+  border-color: #f87171;
+}
+
+/* --- 5. Progress Bar Background --- */
+/* Ensure the empty part of the progress bar is visible in dark mode */
+[data-theme="dark"] .loan-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===================================================================
+   FIX: HEADER EMOJI VISIBILITY (Dark Mode)
+   =================================================================== */
+
+[data-theme="dark"] .header-icon {
+  -webkit-text-fill-color: initial;
+  /* Restores natural emoji colors */
+  background: none;
+  /* Removes the white gradient */
+  text-shadow: none;
+  /* Removes potential blur */
+  display: inline-block;
+  /* Ensures proper rendering */
+}
+
+/* ===================================================================
+   ACCOUNT PAGE MOBILE POLISH (Login/Register Animations)
+   =================================================================== */
+
+@media (max-width: 850px) {
+
+  /* 1. Fix Mobile Scrolling & Height */
+  .auth-body {
+    height: 100dvh;
+    /* Use dynamic viewport height for mobile browsers */
+    overflow-y: auto;
+    /* Allow scrolling if content overflows */
+  }
+
+  .auth-wrapper {
+    min-height: 100dvh;
+    /* Ensure full height */
+    height: auto;
+    flex-direction: column;
+  }
+
+  /* 2. Animated Header Section */
+  .auth-visual {
+    height: 35vh;
+    /* Takes top 35% of screen */
+    padding: 2rem 1.5rem;
+    align-items: flex-start;
+    /* Align text to top */
+    background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+    position: relative;
+    overflow: hidden;
+    flex: none;
+    /* Don't grow/shrink */
+  }
+
+  /* Background Ambient Rotation */
+  .auth-visual::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    animation: rotateBg 25s linear infinite;
+  }
+
+  /* Logo Entrance */
+  .brand-logo {
+    font-size: 2.2rem;
+    position: relative;
+    z-index: 2;
+    animation: slideDownFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Reveal the Quote (Smaller) */
+  .brand-quote {
+    display: block !important;
+    /* Force show */
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin-top: 0.5rem;
+    position: relative;
+    z-index: 2;
+    animation: fadeIn 1s ease-out 0.3s backwards;
+  }
+
+  /* Hide the glass card to save space */
+ .visual-glass-card {
+   display: inline-block !important;
+   /* Force it to show */
+   margin-top: 10px;
+   padding: 8px 16px;
+   border-radius: 50px;
+   /* Pill shape */
+   background: rgba(255, 255, 255, 0.15);
+   backdrop-filter: blur(8px);
+   border: 1px solid rgba(255, 255, 255, 0.2);
+
+   /* Make text smaller for mobile */
+   font-size: 0.75rem;
+   font-weight: 500;
+   letter-spacing: 0.3px;
+   white-space: nowrap;
+   /* Keep on one line if possible */
+
+   /* Animation: Slide up with delay */
+   animation: fadeInUp 0.6s ease-out 0.5s backwards;
+   position: relative;
+   z-index: 2;
+ }
+
+  /* 3. The Slide-Up Form Card */
+  .auth-form-container {
+    min-height: 65vh;
+    height: auto;
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    margin-top: -30px;
+    /* Stronger overlap effect */
+    padding: 2.5rem 1.5rem;
+    background: var(--bg-white);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    /* Shadow creates depth */
+    position: relative;
+    z-index: 10;
+    justify-content: flex-start;
+    animation: slideUpCard 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .auth-header {
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease-out 0.2s backwards;
+  }
+
+  /* 4. Staggered Input Fields (Cascade Effect) */
+  .input-group {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  /* Delays for the "Waterfall" look */
+  .input-group:nth-child(1) {
+    animation-delay: 0.3s;
+  }
+
+  .input-group:nth-child(2) {
+    animation-delay: 0.4s;
+  }
+
+  .input-group:nth-child(3) {
+    animation-delay: 0.5s;
+  }
+
+  .input-group:nth-child(4) {
+    animation-delay: 0.6s;
+  }
+
+  /* 5. Big Touch-Friendly Inputs & Button */
+  .auth-input {
+    font-size: 16px !important;
+    /* Prevents iOS zoom-in */
+    padding: 16px 16px 16px 50px;
+    /* Comfortable padding */
+  }
+
+  .auth-button {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out 0.7s forwards;
+    padding: 18px;
+    /* Larger touch target */
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+  }
+}
+
+/* --- Animation Keyframes --- */
+@keyframes rotateBg {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpCard {
+  from {
+    transform: translateY(100vh);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+
+/* ===================================================================
+   MOBILE POLISH & COOL ANIMATIONS
+   =================================================================== */
+
+/* --- 1. Keyframe Definitions --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* --- 2. Staggered Entrance (The Waterfall Effect) --- */
+/* This makes cards slide in one by one when you load the page */
+
+.stat-card,
+.budget-card,
+.goal-card,
+.loan-card,
+.mini-txn-row {
+  opacity: 0;
+  /* Start invisible */
+  animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Stagger delays for up to 10 items */
+.stat-card:nth-child(1),
+.budget-card:nth-child(1),
+.goal-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(2),
+.budget-card:nth-child(2),
+.goal-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(3),
+.budget-card:nth-child(3),
+.goal-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.stat-card:nth-child(4),
+.budget-card:nth-child(4),
+.goal-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.stat-card:nth-child(5),
+.budget-card:nth-child(5),
+.goal-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* Apply similar stagger to list items (History) */
+.history-item,
+.mini-txn-row {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+.history-item:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.history-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.history-item:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.history-item:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+/* --- 3. Tactile Touch Feedback (Mobile Only) --- */
+/* When tapping a card or button, it shrinks slightly to mimic a real app */
+@media (max-width: 768px) {
+
+  .action-btn:active,
+  .tool-btn:active,
+  .goal-card:active,
+  .budget-card:active,
+  .loan-card:active,
+  .icon-btn:active {
+    transform: scale(0.96);
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Smooth scrolling for the whole page */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* --- 4. Floating Action Button (FAB) Animation --- */
+/* If you have floating buttons, give them a pop */
+.add-goal-btn,
+.add-loan-btn,
+.add-card-btn {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Bouncy spring */
+}
+
+.add-goal-btn:active,
+.add-loan-btn:active {
+  transform: scale(0.90);
+}
+
+/* --- 5. Modal Slide-Up (Bottom Sheet Feel) --- */
+/* Ensure modals slide up from bottom on mobile */
+@media (max-width: 600px) {
+  .modal-content {
+    animation: slideUpModal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUpModal {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* ===================================================================
+   MOBILE THEME TOGGLE (Visuals & Visibility)
+   =================================================================== */
+
+/* 1. VISIBILITY: Hide this button on Desktop (PC) by default */
+.mobile-theme-toggle {
+  display: none !important;
+}
+
+/* 2. Default Icon (Light Mode) -> Show Moon */
+.theme-icon-visual::before {
+  content: '🌙';
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* 3. Dark Mode Icon -> Show Sun */
+[data-theme="dark"] .theme-icon-visual::before {
+  content: '☀️';
+}
+
+/* 4. MOBILE LAYOUT: Show Button & Fix Alignment */
+@media (max-width: 768px) {
+
+  /* Bring the button back on mobile/tablet */
+  .mobile-theme-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Force header actions side-by-side */
+  .header-actions {
+    display: flex;
+    flex-direction: row;
+    /* Force side-by-side layout */
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Hide the date on small screens to make room for buttons */
+  .current-date {
+    display: none;
+  }
+}
+
+
+
+/* ===================================================================
+   RESPONSIVE & MOBILE OPTIMIZATION (Pro Level)
+   =================================================================== */
+
+/* --- 1. Global Mobile Layout (Tablets & Phones) --- */
+@media (max-width: 850px) {
+
+  /* CRITICAL FIX: Unlock page scrolling on mobile */
+  .app-body {
+    height: auto !important;
+    overflow: auto !important;
+    position: relative;
+  }
+
+  /* Fix Main Layout Structure */
+  .app-layout {
+    flex-direction: column;
+    height: auto !important;
+    /* Let content grow */
+    display: block;
+  }
+
+  /* Hide Desktop Sidebar */
+  .sidebar {
+    display: none;
+  }
+
+  /* Expand Main Content */
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    height: auto !important;
+    /* Stop internal scrolling */
+    overflow: visible !important;
+    /* Let page scroll naturally */
+    padding: 1rem;
+    padding-bottom: 120px !important;
+    /* Extra space for Bottom Nav */
+  }
+
+  /* Show Bottom Nav */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    /* Lock to bottom of screen */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    /* Modern Phone Safety (iPhone X+ Home Bar) */
+    padding-bottom: env(safe-area-inset-bottom);
+    height: auto;
+    min-height: 70px;
+  }
+
+  /* Floating Action Button Adjustment */
+  .b-nav-fab-container {
+    top: -30px;
+    position: relative;
+  }
+}
+
+/* --- 2. Dashboard & Grid Stacking (Phones) --- */
+@media (max-width: 900px) {
+
+  /* Stack Dashboard Grids */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    /* Force single column stack */
+    gap: 1rem;
+  }
+
+  /* Hero Card (Balance) should be big */
+  .hero-card {
+    min-height: 180px;
+  }
+
+  /* Stack Main Content Columns */
+  .main-grid {
+    grid-template-columns: 1fr;
+    /* Stack Left/Right cols */
+    gap: 1.5rem;
+  }
+
+  /* Stack Savings, Loans, and Finished Loans */
+  .savings-grid,
+  .loan-grid,
+  .finished-grid,
+  .category-grid {
+    grid-template-columns: 1fr;
+    /* 1 card per row */
+  }
+
+  /* Stack Forms & Sidebars */
+  .budget-wrapper,
+  .profile-forms-grid {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Budget: Put "Quick Tools" on top for easy access */
+  .budget-wrapper {
+    flex-direction: column-reverse;
+  }
+}
+
+/* --- 3. Typography & Spacing (Small Screens) --- */
+@media (max-width: 600px) {
+
+  /* Header Adjustments */
+  .dash-header,
+  .savings-header,
+  .loan-header,
+  .wallet-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .add-goal-btn,
+  .add-loan-btn,
+  .add-card-btn {
+    width: 100%;
+    /* Full width buttons are easier to tap */
+    justify-content: center;
+    padding: 14px;
+  }
+
+  /* Typography Scaling */
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  /* Profile Hero: Stack and Center */
+  .profile-hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .profile-badges {
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+}
+
+/* --- 4. Wallet & Card Carousel (Touch Optimized) --- */
+@media (max-width: 600px) {
+  .cards-carousel {
+    padding: 0.5rem 1rem 1.5rem 1rem;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 1rem;
+    /* Peek Effect: Show a bit of the next card */
+    padding-right: 20%;
+  }
+
+  .credit-card {
+    flex: 0 0 85%;
+    /* Card takes 85% of screen width */
+    height: 190px;
+    scroll-snap-align: start;
+  }
+
+  /* Adjust internal card text */
+  .card-number {
+    font-size: 1.2rem;
+  }
+
+  .card-chip {
+    width: 40px;
+    height: 30px;
+  }
+}
+
+/* --- 5. Forms & Inputs (iOS Zoom Fix) --- */
+@media (max-width: 600px) {
+
+  input,
+  select,
+  textarea,
+  .tool-input,
+  .modern-input {
+    font-size: 16px !important;
+    /* Prevents iOS from zooming in when typing */
+    padding: 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-group,
+  .input-group {
+    width: 100%;
+  }
+}
+
+/* --- 6. Modals (Bottom Sheet Style feel) --- */
+@media (max-width: 500px) {
+
+  .modal-content,
+  .modal-content.confirmation {
+    width: 95%;
+    max-width: 100%;
+    bottom: 10px;
+    margin: auto;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    padding: 1.5rem;
+  }
+
+  /* Bigger Touch Targets for Actions */
+  .confirm-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .confirm-actions button {
+    width: 100%;
+    padding: 16px;
+  }
+}
+
+/* --- 7. Utility: Hide Scrollbars on Touch --- */
+.cards-carousel::-webkit-scrollbar,
+.history-list::-webkit-scrollbar {
+  display: none;
+}
