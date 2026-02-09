@@ -96,43 +96,49 @@ def init_routes(app):
     @login_required
     def dashboard():
         user_id = session["user_id"]
-    
-    # --- 1. Fetch Basic Data ---
-        transactions = models.get_transactions(user_id)
-    
-    # Calculate "Cash Flow" Balance (Income - Expenses from transactions)
-    # We keep this variable 'balance' in case your charts use it.
-        balance = sum(
-        t["amount"] if t["type"] == "income" else -t["amount"] for t in transactions
-    )
 
-    # Get Total Savings
+    # --- 1. Fetch Transactions (Cash Flow) ---
+    # FIX: Add "or []" so it never crashes if None
+        transactions = models.get_transactions(user_id) or []
+
+    # Calculate "Cash Flow" Balance
+    # If transactions is empty, sum() returns 0 automatically (Safe)
+        balance = sum(
+            t["amount"] if t["type"] == "income" else -t["amount"] 
+            for t in transactions
+        )
+
+    # --- 2. Total Savings ---
+    # FIX: Add "or 0" so math doesn't fail on None
         total_savings = models.get_total_savings(user_id) or 0
 
-    # --- 2. Digital Wallet (Assets) ---
+    # --- 3. Digital Wallet (Cards) ---
         try:
-            cards = models.get_user_cards(user_id)
-        except:
+            cards = models.get_user_cards(user_id) or []
+        except Exception:
             cards = []
-    
-    # Calculate Total Wallet Money (Sum of all cards)
+
+    # Calculate Total Wallet Money
         total_wallet = sum(card["balance"] for card in cards)
 
-    # --- 3. Loans & Real Debt (Liabilities) ---
-        loans = models.get_loans(user_id)
-    
+    # --- 4. Loans & Debt (Liabilities) ---
+    # FIX: Add "or []" to prevent loop crash
+        loans = models.get_loans(user_id) or []
+
+    # Prepare Chart Data
         loan_labels = []
         loan_totals = []
         loan_paids = []
-    
         total_remaining_debt = 0
 
         for loan in loans:
-        # Get payments for this specific loan
+        # Get payments for this specific loan (Safe check)
             paid = models.get_total_loan_payments(loan["id"]) or 0
-        
+
         # Calculate remaining debt for this loan
             remaining = loan["amount"] - paid
+        
+        # Only count positive debt
             if remaining > 0:
                 total_remaining_debt += remaining
 
@@ -141,24 +147,25 @@ def init_routes(app):
             loan_totals.append(loan["amount"])
             loan_paids.append(paid)
 
-    # --- 4. The Net Balance Formula ---
-    # (Wallet Assets + Savings Assets) - (Remaining Debt Liabilities)
+    # --- 5. The Net Balance Formula ---
+    # (Assets) - (Liabilities)
         net_balance = (total_wallet + total_savings) - total_remaining_debt
 
         return render_template(
             "dashboard.html",
             transactions=transactions,
             balance=balance,
-            total_wallet=total_wallet,        # Needed for Dashboard Summary
+            total_wallet=total_wallet,
             total_savings=total_savings,
-            total_debt=total_remaining_debt,  # Now shows actual debt, not just loan amount
-            net_balance=net_balance,          # The new Hero Number
-            username=session["username"],
+            total_debt=total_remaining_debt,
+            net_balance=net_balance,
+            username=session.get("username", "User"), # Safe fallback name
             loan_labels=loan_labels,
             loan_totals=loan_totals,
             loan_paids=loan_paids,
             cards=cards,
     )
+        
     @app.route("/add", methods=["POST"])
     @login_required
     def add():
