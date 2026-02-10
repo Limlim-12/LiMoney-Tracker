@@ -103,32 +103,22 @@ def init_routes(app):
     def dashboard():
         user_id = session["user_id"]
 
-        # --- 1. Fetch Transactions (Cash Flow) ---
-        # FIX: Add "or []" so it never crashes if None
         transactions = models.get_transactions(user_id) or []
 
-        # Calculate "Cash Flow" Balance
-        # If transactions is empty, sum() returns 0 automatically (Safe)
         balance = sum(
             t["amount"] if t["type"] == "income" else -t["amount"] 
             for t in transactions
         )
 
-        # --- 2. Total Savings ---
-        # FIX: Add "or 0" so math doesn't fail on None
         total_savings = models.get_total_savings(user_id) or 0
 
-        # --- 3. Digital Wallet (Cards) ---
         try:
             cards = models.get_user_cards(user_id) or []
         except Exception:
             cards = []
 
-        # Calculate Total Wallet Money
         total_wallet = sum(card["balance"] for card in cards)
 
-        # --- 4. Loans & Debt (Liabilities) ---
-        # FIX: Add "or []" to prevent loop crash
         loans = models.get_loans(user_id) or []
 
         # Prepare Chart Data
@@ -137,24 +127,51 @@ def init_routes(app):
         loan_paids = []
         total_remaining_debt = 0
 
-        for loan in loans:
-            # Get payments for this specific loan (Safe check)
-            paid = models.get_total_loan_payments(loan["id"]) or 0
+        nearest_due = 999  # Default to a high number (far away)
+        today = date.today()
 
-            # Calculate remaining debt for this loan
+        for loan in loans:
+
+            paid = models.get_total_loan_payments(loan["id"]) or 0
             remaining = loan["amount"] - paid
 
             # Only count positive debt
             if remaining > 0:
                 total_remaining_debt += remaining
 
+                # --- SMART REMINDER LOGIC START ---
+                try:
+                    # 1. Parse the start date to get the "Day of Month" (e.g., 15th)
+                    start_dt = datetime.strptime(loan["start_date"], "%Y-%m-%d").date()
+
+                    # 2. Create a due date for THIS current month
+                    # (Handle error if today is Feb and due date is 30th)
+                    try:
+                        this_month_due = date(today.year, today.month, start_dt.day)
+                    except ValueError:
+                        # Fallback for short months (use 28th or 1st of next month)
+                        this_month_due = date(today.year, today.month, 28)
+
+                    # 3. If this month's due date has passed, the next one is next month
+                    if this_month_due < today:
+                        next_due = this_month_due + relativedelta(months=1)
+                    else:
+                        next_due = this_month_due
+
+                    # 4. Calculate days remaining
+                    days_diff = (next_due - today).days
+
+                    # 5. Keep the smallest number (the most urgent loan)
+                    if days_diff < nearest_due:
+                        nearest_due = days_diff
+                except Exception:
+                    pass  # If date parsing fails, skip this loan
+
             # Prepare Chart Data
             loan_labels.append(loan["loan_name"])
             loan_totals.append(loan["amount"])
             loan_paids.append(paid)
 
-        # --- 5. The Net Balance Formula ---
-        # (Assets) - (Liabilities)
         net_balance = (total_wallet + total_savings) - total_remaining_debt
 
         return render_template(
@@ -164,13 +181,14 @@ def init_routes(app):
             total_wallet=total_wallet,
             total_savings=total_savings,
             total_debt=total_remaining_debt,
+            days_until_due=nearest_due,
             net_balance=net_balance,
-            username=session.get("username", "User"), # Safe fallback name
+            username=session.get("username", "User"),  # Safe fallback name
             loan_labels=loan_labels,
             loan_totals=loan_totals,
             loan_paids=loan_paids,
             cards=cards,
-    )
+        )
 
     @app.route("/add", methods=["POST"])
     @login_required

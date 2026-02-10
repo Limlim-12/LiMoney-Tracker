@@ -51,8 +51,17 @@ block content %}
 
     <div class="stat-card">
       <div class="stat-header">
-        <span class="icon-box orange">🏦</span>
-        <span class="trend-indicator down">Active</span>
+        <span class="icon-box {{ 'green' if total_debt == 0 else ('red' if days_until_due <= 0 else 'orange') }}">
+          🏦
+        </span>
+      
+        <span class="trend-indicator {{ 'up' if total_debt == 0 else 'down' }}">
+          {% if total_debt == 0 %}
+          Clear
+          {% else %}
+          {% if days_until_due < 0 %} ⚠️ Overdue ({{ days_until_due|abs }}d) {% elif days_until_due==0 %} 🚨 Due Today! {%
+            elif days_until_due==1 %} ❗ Due Tomorrow {% elif days_until_due <=3 %} ⏳ Due in {{ days_until_due }}d {% elif
+            days_until_due <=5 %} 📅 Due in {{ days_until_due }}d {% else %} Active {% endif %} {% endif %} </span>
       </div>
       <div class="stat-content">
         <h3>Total Debt</h3>
@@ -204,6 +213,7 @@ block content %}
           <div class="form-row">
             <input
               type="number"
+              inputmode="decimal"
               step="0.01"
               name="amount"
               placeholder="0.00"

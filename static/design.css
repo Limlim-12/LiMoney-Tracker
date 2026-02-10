@@ -1235,6 +1235,11 @@ textarea {
     display: flex;
     /* Turn it on for mobile */
   }
+
+    .loan-form-container {
+      margin-bottom: 5rem;
+      padding-bottom: 2rem;
+    }
 }
 
 .b-nav-item {
@@ -1683,6 +1688,8 @@ textarea {
   .budget-sidebar {
     order: -1;
   }
+
+  
 
   /* Tools on top for mobile */
 }
@@ -3247,10 +3254,10 @@ textarea {
   }
 
   /* --- 5. Quick Add Form --- */
-  .action-card {
-    background: linear-gradient(to bottom right, var(--bg-white), #f8fafc);
-    border: 1px solid var(--primary-color);
-  }
+.action-card {
+  background: linear-gradient(to bottom right, var(--bg-white), #f8fafc);
+  /* Border removed so it doesn't show blue in light mode */
+}
 
   .modern-input,
   .modern-select {
@@ -4641,28 +4648,32 @@ input[type="password"]::-webkit-password-reveal-button {
 }
 
 /* ===================================================================
-   PROFILE FOOTER & LOGOUT (Spacing Fixed)
+   PROFILE FOOTER & LOGOUT (Optimized & Compact)
    =================================================================== */
 
 .profile-footer {
-  margin-top: 3rem;
-  /* Reduced from 4rem */
+  margin-top: 2rem;
+  /* Reduced from 3rem */
   text-align: center;
-  padding-bottom: 2rem;
-  /* Standard padding for PC (No huge gap) */
+  padding-bottom: 1rem;
+  /* Standard padding for PC */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
+  /* Reduced gap from 1.5rem */
 }
 
-/* 1. The Divider Line */
+/* 1. The Divider Line (Subtler) */
 .profile-footer .action-divider {
-  width: 60px;
-  height: 4px;
+  width: 40px;
+  /* Smaller width */
+  height: 3px;
+  /* Thinner */
   background-color: var(--border-color);
   border-radius: 10px;
-  opacity: 0.5;
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
 }
 
 /* 2. The Logout Button */
@@ -4670,24 +4681,26 @@ input[type="password"]::-webkit-password-reveal-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 
   background: rgba(239, 68, 68, 0.05);
   color: var(--danger-color);
   border: 1px solid rgba(239, 68, 68, 0.3);
 
-  padding: 0.9rem 2.5rem;
+  padding: 0.7rem 2rem;
+  /* More compact padding */
   border-radius: 50px;
   font-family: var(--font-primary);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  /* Slightly smaller text */
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .logout-btn .btn-icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 /* Hover/Active States */
@@ -4695,17 +4708,20 @@ input[type="password"]::-webkit-password-reveal-button {
 .logout-btn:active {
   background: var(--danger-color);
   color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
   border-color: transparent;
 }
 
-/* 3. Credits Text */
+/* 3. Credits Text (Compact) */
 .profile-footer .version-text {
   color: var(--text-light);
-  font-size: 0.85rem;
-  line-height: 1.6;
-  opacity: 0.8;
+  font-size: 0.75rem;
+  /* Smaller font */
+  line-height: 1.4;
+  /* Tighter lines */
+  opacity: 0.7;
+  margin-top: 0.5rem;
 }
 
 /* 4. Forms Grid Spacing */
@@ -4727,12 +4743,262 @@ input[type="password"]::-webkit-password-reveal-button {
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
 }
 
-/* 📱 MOBILE ONLY: Add extra space so the Bottom Nav doesn't cover the credits */
+/* ===================================================================
+   MOBILE OPTIMIZATION (Fixing the Huge Gaps)
+   =================================================================== */
+
 @media (max-width: 900px) {
+
+  /* 1. Wrapper Spacing: JUST enough to clear the Bottom Nav (~80px height) */
+  /* This replaces the old 120px padding */
+  .profile-wrapper,
+  .dashboard-wrapper,
+  .budget-wrapper,
+  .loan-wrapper {
+    padding-bottom: 90px !important;
+  }
+
+  /* 2. Footer Spacing: Remove the massive 8rem padding */
   .profile-footer {
-    padding-bottom: 8rem !important;
+    margin-top: 1.5rem;
+    /* Tighter to content */
+    padding-bottom: 1rem;
+    /* Minimal padding inside footer */
+    gap: 0.8rem;
+    /* Tighter elements */
+  }
+
+  /* 3. Logout Button: Full width but slim */
+  .logout-btn,
+  .btn-logout {
+    width: 100%;
+    /* Easy to tap */
+    padding: 0.8rem;
+    /* Finger-friendly height */
+    margin-top: 0.5rem;
+    display: flex;
+    box-sizing: border-box;
+    /* Ensure padding doesn't overflow width */
+  }
+
+  /* 4. Make version text very small on mobile to save space */
+  .profile-footer .version-text {
+    font-size: 0.7rem;
+    margin-bottom: 0;
   }
 }
+
+
+/* --- NEW BUDGET COMPONENTS (IMPROVED) --- */
+
+/* 1. Split Hero Section */
+.budget-hero {
+  background: var(--bg-white);
+  border-radius: 24px;
+  /* Slightly rounder */
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  /* Softer, modern shadow */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  /* Spreads chart and legend nicely */
+  gap: 2rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  /* Subtle border definition */
+}
+
+.chart-section {
+  flex: 1;
+  min-width: 280px;
+  /* Increased slightly for better visibility */
+  height: 280px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 2. Custom HTML Legend */
+.legend-section {
+  flex: 1;
+  min-width: 260px;
+}
+
+.custom-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Gap handled by padding for hover effect */
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 10px;
+  /* Space for scrollbar */
+}
+
+/* ✨ Custom Scrollbar Styling */
+.custom-legend::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-legend::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-legend::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-legend::-webkit-scrollbar-thumb:hover {
+  background-color: #cbd5e1;
+}
+
+.legend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  padding: 0.8rem 0.5rem;
+  /* More breathing room */
+  border-bottom: 1px solid var(--bg-body);
+  transition: background 0.2s;
+  border-radius: 8px;
+  /* Rounded hover state */
+}
+
+.legend-item:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  /* Subtle highlight on hover */
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  /* Soft square looks more modern than circle sometimes */
+  margin-right: 12px;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 3. Modern Progress Cards */
+.modern-cat-card {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Smoother animation */
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-cat-card:hover {
+  transform: translateY(-4px);
+  /* Higher lift */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  border-color: var(--primary-color);
+}
+
+.cat-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  /* Slightly thicker */
+  background: #f1f5f9;
+  /* Lighter, cleaner gray */
+  border-radius: 999px;
+  /* Pill shape */
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+  /* Inner depth */
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Optional: Striped or Gradient effect */
+  background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-size: 1rem 1rem;
+}
+
+/* Status Colors with Gradients */
+.status-safe {
+  background-color: var(--success-color);
+  background: linear-gradient(90deg, var(--success-color), #4ade80);
+}
+
+.status-warning {
+  background-color: var(--warning-color);
+  background: linear-gradient(90deg, var(--warning-color), #fbbf24);
+}
+
+.status-danger {
+  background-color: var(--danger-color);
+  background: linear-gradient(90deg, var(--danger-color), #f87171);
+}
+
+/* --- Mobile Fixes --- */
+@media (max-width: 768px) {
+
+  /* Hero Section Stacking */
+  .budget-hero {
+    flex-direction: column;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    align-items: center;
+    /* Center chart */
+    text-align: center;
+  }
+
+  .chart-section {
+    width: 100%;
+    min-width: unset;
+    height: 240px;
+    /* Slightly smaller chart on mobile */
+  }
+
+  .legend-section {
+    width: 100%;
+  }
+
+  /* Category List Centering */
+  .category-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 2rem;
+  }
+
+  .modern-cat-card {
+    width: 95% !important;
+    /* Almost full width */
+    max-width: 400px;
+    /* Don't get too wide on tablets */
+    margin: 0 0 1rem 0 !important;
+  }
+
+  .cat-header-row span {
+    font-size: 0.95rem;
+    /* Prevent text wrap issues */
+  }
+}
+
 
 /* ===================================================================
    RESPONSIVE & MOBILE OPTIMIZATION (Pro Level)

@@ -3,7 +3,7 @@
 <div class="loan-wrapper">
   <div class="loan-header">
     <div>
-      <h1><span class="header-icon">🛡️</span> Debt Crusher</h1>
+      <h1><span class="header-icon">💸</span> Debt Crusher</h1>
       <p class="section-subtitle">Destroy your debt, one payment at a time.</p>
     </div>
 
@@ -34,7 +34,7 @@
   </div>
 
   <div class="loan-grid">
-    {% if active_loans %} {% for loan in active_loans %} {% set total_paid =
+    {% for loan in active_loans %} {% set total_paid =
     get_total_loan_payments(loan.id) %} {% set pct = (total_paid / loan.amount)
     * 100 %} {% set remaining = loan.amount - total_paid %}
 
@@ -133,14 +133,21 @@
         {% endif %}
       </div>
     </div>
-    {% endfor %} {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">🛡️</div>
-      <h3>You are Debt Free!</h3>
-      <p>Or maybe you just haven't added a loan yet.</p>
-      <button class="tool-btn" onclick="openAddLoanModal()">Add Loan</button>
-    </div>
-    {% endif %}
+  
+  
+  {% else %}
+  
+  <div class="empty-savings">
+    <div class="empty-icon">🛡️</div>
+    <h3>You are Debt Free!</h3>
+    <p>Or maybe you just haven't added a loan yet.</p>
+  
+    <button class="tool-btn" onclick="openAddLoanModal()">
+      Track New Loan
+    </button>
+  </div>
+  
+  {% endfor %}
   </div>
 
   {% if finished_loans %}
@@ -194,6 +201,7 @@
           <label>Total Amount (₱)</label>
           <input
             type="number"
+            inputmode="decimal"
             step="0.01"
             name="loan_amount"
             required
@@ -204,6 +212,7 @@
           <label>Monthly Due (₱)</label>
           <input
             type="number"
+            inputmode="decimal"
             step="0.01"
             name="monthly_payment"
             required
@@ -252,6 +261,7 @@
         <label>Amount (₱)</label>
         <input
           type="number"
+          inputmode="decimal"
           step="0.01"
           name="pay_amount"
           id="payAmount"
