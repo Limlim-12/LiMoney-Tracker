@@ -88,8 +88,12 @@ def init_routes(app):
     
     @app.route('/sw.js')
     def service_worker():
-    # This serves the file from static/sw.js but makes it appear at localhost:5000/sw.js
-        return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+        response = send_from_directory('static', 'sw.js', mimetype='application/javascript')
+        # ⚠️ Force browser to NEVER cache the Service Worker
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
     # ------------------ DASHBOARD ------------------
     @app.route("/")
