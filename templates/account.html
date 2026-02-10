@@ -25,10 +25,11 @@
     ) {
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
+          // updateViaCache: 'none' forces the browser to check for a new sw.js every time
           navigator.serviceWorker
-            .register("/sw.js")
+            .register("/sw.js", { updateViaCache: "none" })
             .then((reg) =>
-              console.log("Service Worker Registered!", reg.scope),
+              console.log("Service Worker Registered!", reg.scope)
             )
             .catch((err) => console.log("Service Worker Failed:", err));
         });

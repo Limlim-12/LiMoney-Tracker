@@ -16,22 +16,24 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-512.png') }}" />
 
   <script>
+    // Only register the Service Worker if we are NOT on localhost
     if (
       window.location.hostname !== "127.0.0.1" &&
       window.location.hostname !== "localhost"
     ) {
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
+          // updateViaCache: 'none' forces the browser to check for a new sw.js every time
           navigator.serviceWorker
-            .register("/sw.js")
+            .register("/sw.js", { updateViaCache: "none" })
             .then((reg) =>
-              console.log("Service Worker Registered!", reg.scope),
+              console.log("Service Worker Registered!", reg.scope)
             )
             .catch((err) => console.log("Service Worker Failed:", err));
         });
       }
     } else {
-      console.log("Service Worker skipped on Localhost to prevent errors");
+      console.log("Service Worker skipped on Localhost");
     }
   </script>
 
