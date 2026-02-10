@@ -85,15 +85,17 @@ def init_routes(app):
         session.clear()
         flash("You have been logged out", "info")
         return redirect(url_for("login"))
-    
-    @app.route('/sw.js')
+
+    @app.route("/sw.js")
     def service_worker():
-        response = send_from_directory('static', 'sw.js', mimetype='application/javascript')
-        # ⚠️ Force browser to NEVER cache the Service Worker
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        return response return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+        response = send_from_directory(
+            "static", "sw.js", mimetype="application/javascript"
+        )
+        # Force browser to NEVER cache the Service Worker
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 
     # ------------------ DASHBOARD ------------------
     @app.route("/")
@@ -101,58 +103,58 @@ def init_routes(app):
     def dashboard():
         user_id = session["user_id"]
 
-    # --- 1. Fetch Transactions (Cash Flow) ---
-    # FIX: Add "or []" so it never crashes if None
+        # --- 1. Fetch Transactions (Cash Flow) ---
+        # FIX: Add "or []" so it never crashes if None
         transactions = models.get_transactions(user_id) or []
 
-    # Calculate "Cash Flow" Balance
-    # If transactions is empty, sum() returns 0 automatically (Safe)
+        # Calculate "Cash Flow" Balance
+        # If transactions is empty, sum() returns 0 automatically (Safe)
         balance = sum(
             t["amount"] if t["type"] == "income" else -t["amount"] 
             for t in transactions
         )
 
-    # --- 2. Total Savings ---
-    # FIX: Add "or 0" so math doesn't fail on None
+        # --- 2. Total Savings ---
+        # FIX: Add "or 0" so math doesn't fail on None
         total_savings = models.get_total_savings(user_id) or 0
 
-    # --- 3. Digital Wallet (Cards) ---
+        # --- 3. Digital Wallet (Cards) ---
         try:
             cards = models.get_user_cards(user_id) or []
         except Exception:
             cards = []
 
-    # Calculate Total Wallet Money
+        # Calculate Total Wallet Money
         total_wallet = sum(card["balance"] for card in cards)
 
-    # --- 4. Loans & Debt (Liabilities) ---
-    # FIX: Add "or []" to prevent loop crash
+        # --- 4. Loans & Debt (Liabilities) ---
+        # FIX: Add "or []" to prevent loop crash
         loans = models.get_loans(user_id) or []
 
-    # Prepare Chart Data
+        # Prepare Chart Data
         loan_labels = []
         loan_totals = []
         loan_paids = []
         total_remaining_debt = 0
 
         for loan in loans:
-        # Get payments for this specific loan (Safe check)
+            # Get payments for this specific loan (Safe check)
             paid = models.get_total_loan_payments(loan["id"]) or 0
 
-        # Calculate remaining debt for this loan
+            # Calculate remaining debt for this loan
             remaining = loan["amount"] - paid
-        
-        # Only count positive debt
+
+            # Only count positive debt
             if remaining > 0:
                 total_remaining_debt += remaining
 
-        # Prepare Chart Data
+            # Prepare Chart Data
             loan_labels.append(loan["loan_name"])
             loan_totals.append(loan["amount"])
             loan_paids.append(paid)
 
-    # --- 5. The Net Balance Formula ---
-    # (Assets) - (Liabilities)
+        # --- 5. The Net Balance Formula ---
+        # (Assets) - (Liabilities)
         net_balance = (total_wallet + total_savings) - total_remaining_debt
 
         return render_template(
@@ -169,7 +171,7 @@ def init_routes(app):
             loan_paids=loan_paids,
             cards=cards,
     )
-        
+
     @app.route("/add", methods=["POST"])
     @login_required
     def add():
@@ -303,15 +305,13 @@ def init_routes(app):
     def savings_tracker():
         user_id = session["user_id"]
         savings_data = models.get_savings(user_id)
-    
+
         return render_template(
             "savings.html", 
             savings=savings_data, 
             username=session["username"],
             get_savings_transactions=models.get_savings_transactions 
     )
-
-    
 
     @app.route("/add-savings", methods=["POST"])
     @login_required
@@ -360,7 +360,7 @@ def init_routes(app):
         except Exception as e:
             flash(f"Error with auto-save: {str(e)}", "error")
         return redirect(url_for("savings_tracker"))
-    
+
     @app.route("/delete-savings/<int:id>", methods=["POST"])
     @login_required
     def delete_savings(id):
@@ -368,12 +368,12 @@ def init_routes(app):
             # Check if it belongs to user (optional security step)
             # savings = models.get_savings_by_id(id)
             # if savings['user_id'] != session['user_id']: ...
-            
+
             models.delete_savings(id)
             flash("Savings goal deleted successfully!", "success")
         except Exception as e:
             flash(f"Error deleting goal: {str(e)}", "error")
-        
+
         # ⚠️ THIS LINE MUST BE INDENTED to match the 'try/except' block above
         return redirect(url_for('savings_tracker'))
 
@@ -467,7 +467,7 @@ def init_routes(app):
     @login_required
     def profile():
         user_id = session["user_id"]
-        
+
         # 1. Handle Profile Updates (Your requested code)
         if request.method == "POST":
             form_type = request.form.get("form_type")
@@ -523,7 +523,7 @@ def init_routes(app):
             balance = float(request.form["balance"])
             color_theme = request.form["color_theme"]
             usage_tag = request.form["usage_tag"]
-            
+
             models.add_card(session["user_id"], bank_name, card_type, last_four, balance, color_theme, usage_tag)
             flash("Card added to wallet!", "success")
         except Exception as e:
