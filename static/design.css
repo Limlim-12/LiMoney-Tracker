@@ -1205,53 +1205,91 @@ textarea {
 /* --- BOTTOM NAV (Mobile) --- */
 .bottom-nav {
   display: none;
-  /* Hidden on desktop */
+  /* Hidden on desktop by default */
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   background: var(--bg-white);
+  /* Glassmorphism for Dark Mode */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-  padding: 0.8rem 1.5rem;
+  /* Reduced side padding to fit 6 items comfortably */
+  padding: 0.8rem 0.5rem;
   justify-content: space-between;
+  /* Spreads items evenly */
   align-items: center;
-  z-index: 100;
+  z-index: 1000;
+  /* Ensure it stays on top of everything */
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
+  border-top: 1px solid var(--border-color);
+  /* Subtle border for dark mode */
+}
+
+/* Show it only on mobile */
+@media (max-width: 900px) {
+  .bottom-nav {
+    display: flex;
+    /* Turn it on for mobile */
+  }
 }
 
 .b-nav-item {
   color: var(--text-light);
   padding: 0.5rem;
   border-radius: 50%;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.b-nav-item:active {
+  transform: scale(0.9);
 }
 
 .b-nav-item.active {
   color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.1);
+  /* Subtle highlight for active tab */
 }
 
 /* Floating Action Button (FAB) in Center */
 .b-nav-fab-container {
   position: relative;
-  top: -25px;
+  top: -28px;
+  /* Slightly higher to "float" */
+  z-index: 1001;
 }
 
 .b-nav-fab {
-  background: var(--primary-color);
-  width: 56px;
-  height: 56px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  width: 52px;
+  /* Slightly smaller to save space */
+  height: 52px;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   color: white;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.5);
   transition: transform 0.2s;
+  border: 4px solid var(--bg-body);
+  /* Creates a "cutout" effect from the bar */
 }
 
 .b-nav-fab:active {
   transform: scale(0.95);
+}
+
+/* Ensure icons are sized correctly */
+.b-nav-item svg,
+.nav-icon {
+  width: 24px;
+  height: 24px;
 }
 
 /* --- TOAST MESSAGES (Redesigned Flash) --- */
@@ -3829,6 +3867,43 @@ textarea {
   color: #fff;
 }
 
+/* 1. The Container (Dark Glass with Dashed Border) */
+[data-theme="dark"] .empty-savings {
+  background: rgba(30, 41, 59, 0.6);
+  /* Semi-transparent dark blue */
+  backdrop-filter: blur(10px);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  /* Subtle dashed border */
+  color: var(--text-secondary);
+  /* Gray text for description */
+  box-shadow: none;
+}
+
+/* 2. The Header Text (Make it visible/white) */
+[data-theme="dark"] .empty-savings h3 {
+  color: var(--text-primary);
+}
+
+/* 3. The "Create Goal" Button (Glassy Style) */
+[data-theme="dark"] .empty-savings .tool-btn {
+  background: rgba(255, 255, 255, 0.1);
+  /* Transparent Glass */
+  color: var(--text-primary);
+  /* Visible Text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 10px;
+  transition: all 0.2s ease;
+}
+
+/* 4. Button Hover Effect */
+[data-theme="dark"] .empty-savings .tool-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  /* Brighter glass on hover */
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* ===================================================================
    UNIFIED LOAN TRACKER STYLES (Matches Budget & Savings)
    =================================================================== */
@@ -3922,6 +3997,17 @@ textarea {
   /* Removes potential blur */
   display: inline-block;
   /* Ensures proper rendering */
+}
+
+.user-name .header-icon {
+  -webkit-text-fill-color: initial !important;
+  /* Forces the emoji to be visible (not transparent) */
+  background: none !important;
+  /* Removes the blue gradient overlay */
+  display: inline-block;
+  /* Ensures proper spacing */
+  margin-left: 5px;
+  /* Adds a tiny space after the name */
 }
 
 /* ===================================================================
@@ -4327,6 +4413,326 @@ input[type="password"]::-webkit-password-reveal-button {
   -webkit-appearance: none;
 }
 
+/* ===================================================================
+   MOBILE DARK MODE FIXES (The "Missing Link")
+   =================================================================== */
+
+@media (max-width: 900px) {
+
+  /* 1. Fix the "Quick Add" Card Gradient 
+     (Currently hardcoded to light gray in mobile view) */
+  [data-theme="dark"] .action-card {
+    background: var(--bg-white) !important;
+    /* Use the dark glass variable */
+    border: 1px solid var(--primary-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 2. Fix Input Fields on Mobile 
+     (Currently forced to 'white' background in mobile view) */
+  [data-theme="dark"] .modern-input,
+  [data-theme="dark"] .modern-select,
+  [data-theme="dark"] input,
+  [data-theme="dark"] select {
+    background: rgba(0, 0, 0, 0.3) !important;
+    /* Dark translucent bg */
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* Focus state for mobile inputs */
+  [data-theme="dark"] .modern-input:focus,
+  [data-theme="dark"] .modern-select:focus,
+  [data-theme="dark"] input:focus {
+    border-color: var(--primary-color) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+  }
+
+  /* 3. Fix Bottom Navigation Bar 
+     (Make it glassy dark instead of solid white) */
+  [data-theme="dark"] .bottom-nav {
+    background: rgba(20, 20, 23, 0.9);
+    /* Deep dark glass */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* 4. Fix Mobile Stats Carousel Cards 
+     (Ensure they use the glass effect) */
+  [data-theme="dark"] .stat-card {
+    background: var(--bg-white);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 5. Fix "Add Expense" Button on Mobile */
+  [data-theme="dark"] .action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+  }
+
+  /* 6. Fix Login/Register Slide-up Card */
+  [data-theme="dark"] .auth-form-container {
+    background: #0f172a;
+    /* Match the deep blue body color */
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ===================================================================
+   FIX: FORCE PREMIUM PC CARD STYLE ON MOBILE
+   =================================================================== */
+
+@media (max-width: 600px) {
+
+  /* 1. Restore the Container Spacing */
+  .cards-carousel {
+    display: flex;
+    overflow-x: auto;
+    padding: 1rem 1rem 2rem 1rem !important;
+    /* Restore PC padding */
+    gap: 1.5rem;
+    /* Restore PC gap */
+    scroll-snap-type: x mandatory;
+    /* Keep the nice snapping */
+  }
+
+  /* 2. Force Exact PC Dimensions */
+  .credit-card {
+    flex: 0 0 320px !important;
+    /* Force the wide PC width (320px) */
+    height: 200px !important;
+    /* Force the full PC height */
+    padding: 25px !important;
+    /* Restore internal spacing */
+    border-radius: 20px !important;
+    scroll-snap-align: center;
+    /* Center the card when scrolling */
+  }
+
+  /* 3. Restore Element Sizes (Chip, Text, Logo) */
+  .card-chip {
+    width: 45px !important;
+    /* Back to PC size */
+    height: 35px !important;
+    /* Back to PC size */
+    margin-top: 10px !important;
+  }
+
+  .card-number {
+    font-size: 1.4rem !important;
+    /* Restore big premium numbers */
+    letter-spacing: 3px !important;
+  }
+
+  .card-balance span {
+    font-size: 1.2rem !important;
+    /* Restore big balance text */
+  }
+
+  /* 4. Ensure 3D Perspective stays active */
+  .credit-card {
+    transform: perspective(1000px) rotateX(0) rotateY(0) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  }
+}
+
+/* ===================================================================
+   PREMIUM MODAL OVERRIDES & FIXES (Consolidated)
+   =================================================================== */
+
+/* --- 1. Modal Container & Header --- */
+.premium-modal {
+  max-width: 450px !important;
+  border: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  font-family: var(--font-secondary);
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color), #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* FIX: Prevent the gradient from coloring the emoji icon */
+.modal-header h3 .header-icon {
+  -webkit-text-fill-color: initial !important;
+  background: none !important;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* --- 2. Form Layout & Mobile Response --- */
+.premium-form .form-row {
+  display: flex;
+  gap: 1.2rem;
+  flex-direction: row;
+}
+
+/* FIX: Stack inputs vertically on mobile so text fits */
+@media (max-width: 600px) {
+  .premium-form .form-row {
+    flex-direction: column !important;
+    gap: 1rem;
+  }
+}
+
+/* --- 3. Input & Icon Positioning (Prevent Overlap) --- */
+.premium-form .input-wrapper {
+  position: relative;
+  /* Anchor for the absolute icon */
+  width: 100%;
+}
+
+.premium-form .input-icon-span {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  z-index: 10;
+  pointer-events: none;
+  /* Click passes through to input */
+}
+
+/* FIX: Add padding-left so text doesn't sit on top of the emoji */
+.premium-form .premium-input {
+  padding-left: 50px !important;
+  width: 100%;
+}
+
+/* --- 4. Select Dropdown Styling --- */
+.premium-input.modern-select {
+  appearance: none;
+  /* Remove default arrow */
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+  /* Space for custom arrow */
+}
+
+/* --- 5. Dark Mode Adjustments --- */
+[data-theme="dark"] .premium-modal {
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Fix: Select Arrow Color in Dark Mode */
+[data-theme="dark"] .premium-input.modern-select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-color: rgba(30, 41, 59, 0.8);
+  color: white;
+}
+
+/* FIX: Force Dropdown Options to be Dark (prevents invisible text) */
+[data-theme="dark"] select.premium-input option {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+/* ===================================================================
+   PROFILE FOOTER & LOGOUT (Spacing Fixed)
+   =================================================================== */
+
+.profile-footer {
+  margin-top: 3rem;
+  /* Reduced from 4rem */
+  text-align: center;
+  padding-bottom: 2rem;
+  /* Standard padding for PC (No huge gap) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* 1. The Divider Line */
+.profile-footer .action-divider {
+  width: 60px;
+  height: 4px;
+  background-color: var(--border-color);
+  border-radius: 10px;
+  opacity: 0.5;
+}
+
+/* 2. The Logout Button */
+.logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  background: rgba(239, 68, 68, 0.05);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+
+  padding: 0.9rem 2.5rem;
+  border-radius: 50px;
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.logout-btn .btn-icon {
+  font-size: 1.2rem;
+}
+
+/* Hover/Active States */
+.logout-btn:hover,
+.logout-btn:active {
+  background: var(--danger-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+  border-color: transparent;
+}
+
+/* 3. Credits Text */
+.profile-footer .version-text {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+/* 4. Forms Grid Spacing */
+.profile-forms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* --- Dark Mode Adjustments --- */
+[data-theme="dark"] .logout-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .logout-btn:hover {
+  background: var(--danger-color);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+}
+
+/* 📱 MOBILE ONLY: Add extra space so the Bottom Nav doesn't cover the credits */
+@media (max-width: 900px) {
+  .profile-footer {
+    padding-bottom: 8rem !important;
+  }
+}
 
 /* ===================================================================
    RESPONSIVE & MOBILE OPTIMIZATION (Pro Level)

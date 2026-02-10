@@ -136,21 +136,23 @@
     </main>
 
     <nav class="bottom-nav">
-      <a href="{{ url_for('dashboard') }}" class="b-nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-      </a>
-      <a href="{{ url_for('budget_tracker') }}"
-        class="b-nav-item {{ 'active' if request.endpoint == 'budget_tracker' }}">
+     
+    
+      <a href="{{ url_for('budget_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'budget_tracker' }}">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
           <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
         </svg>
       </a>
+    
+      
+    
+      <a href="{{ url_for('loan_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'loan_tracker' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </a>
+
       <div class="b-nav-fab-container">
         <a href="{{ url_for('dashboard') }}#add" class="b-nav-fab" title="Quick Add">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -159,12 +161,13 @@
           </svg>
         </a>
       </div>
-      <a href="{{ url_for('savings_tracker') }}"
-        class="b-nav-item {{ 'active' if request.endpoint == 'savings_tracker' }}">
+    
+      <a href="{{ url_for('savings_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'savings_tracker' }}">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
         </svg>
       </a>
+    
       <a href="{{ url_for('profile') }}" class="b-nav-item {{ 'active' if request.endpoint == 'profile' }}">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
