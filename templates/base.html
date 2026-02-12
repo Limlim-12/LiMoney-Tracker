@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>{% block title %}LiMoney Tracker{% endblock %}</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='design.css') }}?v=2.1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='design.css') }}?v=2.2" />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
     rel="stylesheet" />
@@ -88,6 +88,24 @@
           </svg>
           <span>Loans</span>
         </a>
+
+        <a href="{{ url_for('smart_budget') }}" class="nav-item {{ 'active' if request.endpoint == 'smart_budget' }}">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <line x1="9" y1="1" x2="9" y2="4"></line>
+            <line x1="15" y1="1" x2="15" y2="4"></line>
+            <line x1="9" y1="20" x2="9" y2="23"></line>
+            <line x1="15" y1="20" x2="15" y2="23"></line>
+            <line x1="20" y1="9" x2="23" y2="9"></line>
+            <line x1="20" y1="14" x2="23" y2="14"></line>
+            <line x1="1" y1="9" x2="4" y2="9"></line>
+            <line x1="1" y1="14" x2="4" y2="14"></line>
+          </svg>
+          <span>Smart Budget</span>
+        </a>
+        
         <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -136,7 +154,6 @@
     </main>
 
     <nav class="bottom-nav">
-     
     
       <a href="{{ url_for('budget_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'budget_tracker' }}">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -145,14 +162,22 @@
         </svg>
       </a>
     
-      
-    
-      <a href="{{ url_for('loan_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'loan_tracker' }}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      <a href="{{ url_for('smart_budget') }}" class="b-nav-item {{ 'active' if request.endpoint == 'smart_budget' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+          <rect x="9" y="9" width="6" height="6"></rect>
+          <line x1="9" y1="1" x2="9" y2="4"></line>
+          <line x1="15" y1="1" x2="15" y2="4"></line>
+          <line x1="9" y1="20" x2="9" y2="23"></line>
+          <line x1="15" y1="20" x2="15" y2="23"></line>
+          <line x1="20" y1="9" x2="23" y2="9"></line>
+          <line x1="20" y1="14" x2="23" y2="14"></line>
+          <line x1="1" y1="9" x2="4" y2="9"></line>
+          <line x1="1" y1="14" x2="4" y2="14"></line>
         </svg>
       </a>
-
+    
       <div class="b-nav-fab-container">
         <a href="{{ url_for('dashboard') }}#add" class="b-nav-fab" title="Quick Add">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -162,18 +187,18 @@
         </a>
       </div>
     
+      <a href="{{ url_for('loan_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'loan_tracker' }}">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </a>
+    
       <a href="{{ url_for('savings_tracker') }}" class="b-nav-item {{ 'active' if request.endpoint == 'savings_tracker' }}">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
         </svg>
       </a>
     
-      <a href="{{ url_for('profile') }}" class="b-nav-item {{ 'active' if request.endpoint == 'profile' }}">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      </a>
     </nav>
   </div>
 

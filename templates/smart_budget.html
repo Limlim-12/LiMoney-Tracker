@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+{% block title %}Smart Salary Architect - LiMoney{% endblock %}
+
+{% block content %}
+<div class="smart-wrapper">
+
+    <div class="smart-header">
+        <div class="header-content">
+            <div class="icon-pulse">🤖</div>
+            <div>
+                <h1>Smart Architect</h1>
+                <p>Discuss and optimize your blueprint with AI</p>
+            </div>
+        </div>
+        <button class="action-btn-main" onclick="document.getElementById('budgetForm').submit()">
+            <span>✨</span> Analyze & Discuss
+        </button>
+    </div>
+
+    <div class="smart-grid">
+
+        <div class="smart-card config-card">
+            <div class="card-title">
+                <h3>🎛️ Configuration</h3>
+                <span class="step-badge">Step 1</span>
+            </div>
+
+            <form action="{{ url_for('smart_budget') }}" method="POST" id="budgetForm">
+
+                <div class="config-section">
+                    <label class="section-label">Income Details</label>
+                    <div class="row-inputs">
+                        <div class="input-group full-width">
+                            <span class="input-prefix">₱</span>
+                            <input type="number" id="salaryInput" name="salary_amount" class="modern-input big-input"
+                                value="{{ salary_info.amount if salary_info else '' }}" placeholder="0.00" required
+                                step="0.01" oninput="updateCalculations()" />
+                        </div>
+                        <div class="input-group">
+                            <select name="frequency" class="premium-select" onchange="updateCalculations()">
+                                <option value="Semi-Monthly" {% if salary_info.frequency=='Semi-Monthly' %}selected{%
+                                    endif %}>Semi-Monthly</option>
+                                <option value="Bi-Weekly" {% if salary_info.frequency=='Bi-Weekly' %}selected{% endif
+                                    %}>Bi-Weekly</option>
+                                <option value="Monthly" {% if salary_info.frequency=='Monthly' %}selected{% endif %}>
+                                    Monthly</option>
+                                <option value="Weekly" {% if salary_info.frequency=='Weekly' %}selected{% endif %}>
+                                    Weekly</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="projection-tag" id="income-projection">
+                        Est. Monthly: <strong id="monthly-est">₱0.00</strong>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <div class="config-section">
+                    <div class="section-header-row">
+                        <label class="section-label">Fixed Expenses</label>
+                        <span class="total-badge" id="total-fixed-display">₱0.00</span>
+                    </div>
+
+                    <div class="chips-row">
+                        <button type="button" class="chip" onclick="addQuickItem('Rent 🏠')">Rent</button>
+                        <button type="button" class="chip" onclick="addQuickItem('Food 🍔')">Food</button>
+                        <button type="button" class="chip" onclick="addQuickItem('Internet 🌐')">Internet</button>
+                        <button type="button" class="chip" onclick="addQuickItem('Savings 💰')">Savings</button>
+                    </div>
+
+                    <div id="items-container" class="expense-list">
+                        {% if results %}
+                        {% for item in results %}
+                        <div class="expense-row fade-in">
+                            <input type="text" name="item_name[]" class="row-input name" value="{{ item.name }}"
+                                placeholder="Category">
+                            <div class="amount-group">
+                                <span>₱</span>
+                                <input type="number" name="item_amount[]" class="row-input amount item-amount"
+                                    value="{{ item.user }}" placeholder="0" oninput="updateCalculations()">
+                            </div>
+                            <button type="button" class="row-remove" onclick="removeItem(this)">×</button>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="expense-row fade-in">
+                            <input type="text" name="item_name[]" class="row-input name" value="Rent / Housing">
+                            <div class="amount-group">
+                                <span>₱</span>
+                                <input type="number" name="item_amount[]" class="row-input amount item-amount"
+                                    placeholder="0" oninput="updateCalculations()">
+                            </div>
+                            <button type="button" class="row-remove" onclick="removeItem(this)">×</button>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="button" class="add-row-btn" onclick="addItem()">
+                        + Add Expense
+                    </button>
+                </div>
+
+                <div class="health-meter-box">
+                    <div class="meter-info">
+                        <span id="health-pct">0% Used</span>
+                        <span id="health-remaining" class="success-text">₱0.00 Free</span>
+                    </div>
+                    <div class="meter-track">
+                        <div id="salary-health-bar" class="meter-fill"></div>
+                    </div>
+                    <p id="meter-status" class="meter-caption">Ready to analyze</p>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="smart-results-col">
+            <div class="smart-card result-card">
+                <div class="card-title">
+                    <h3>💎 Blueprint</h3>
+                </div>
+        
+                {% if results %}
+                <div class="ai-chat-container">
+                    <div class="ai-chat-header">
+                        <div class="icon-pulse small">🧠</div>
+                        <span>LiMoney AI Architect</span>
+                    </div>
+                
+                    <div id="chat-window" class="chat-window">
+                        <div class="msg ai-msg">
+                            {{ ai_reasoning if ai_reasoning else "I've analyzed your financial status and distributed the remaining
+                            funds to prioritize stability." }}
+                        </div>
+                    </div>
+                
+                    <div class="chat-input-area">
+                        <input type="text" id="user-chat-input" placeholder="Ask why I chose these numbers..."
+                            onkeypress="if(event.key === 'Enter') sendChatback()">
+                        <button type="button" onclick="sendChatback()">
+                            <svg viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+        
+                <div class="results-wrapper">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-right">Plan</th>
+                                <th class="text-right highlight">AI Fix</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set ns = namespace(total_ai=0) %}
+                            {% for item in results %}
+                            {% set ns.total_ai = ns.total_ai + item.ai %}
+                            <tr>
+                                <td>
+                                    <span class="cat-name">{{ item.name }}</span>
+                                    {% if item.auto %}<span class="auto-tag">Auto</span>{% endif %}
+                                </td>
+                                <td class="text-right dim">
+                                    {% if item.user > 0 %}₱{{ "{:,.0f}".format(item.user) }}{% else %}-{% endif %}
+                                </td>
+                                <td class="text-right strong-val">
+                                    ₱{{ "{:,.0f}".format(item.ai) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td></td>
+                                <td class="text-right total-val">₱{{ "{:,.0f}".format(ns.total_ai) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+        
+                <form action="{{ url_for('smart_budget') }}" method="POST" style="margin-top: 20px;">
+                    <input type="hidden" name="ai_reasoning_hidden" value="{{ ai_reasoning }}">
+                    <input type="hidden" name="salary_amount" value="{{ salary_info.amount }}">
+                    <input type="hidden" name="frequency" value="{{ salary_info.frequency }}">
+                    <input type="hidden" name="save_budget" value="true">
+                    {% for item in results %}
+                    <input type="hidden" name="item_name[]" value="{{ item.name }}">
+                    <input type="hidden" name="item_amount[]" value="{{ item.user }}">
+                    {% endfor %}
+                    <button type="submit" class="save-blueprint-btn">💾 Save Blueprint</button>
+                </form>
+        
+                {% else %}
+                <div class="empty-ai-state">
+                    <div class="robot-icon">🤖</div>
+                    <p>Enter your details on the left to discuss an optimized plan with the AI Architect.</p>
+                </div>
+                {% endif %}
+            </div>
+        
+            <div class="smart-card history-card">
+                <div class="card-title">
+                    <h3>📜 History</h3>
+                </div>
+                <div class="history-list">
+                    {% if history %}
+                    {% for b in history %}
+                    <div class="hist-item">
+                        <div class="hist-left">
+                            <span class="hist-freq">{{ b.frequency }}</span>
+                            <span class="hist-date">{{ b.created_at.strftime('%b %d') }}</span>
+                        </div>
+                        <div class="hist-right">
+                            <span class="hist-amt">₱{{ "{:,.0f}".format(b.salary_amount) }}</span>
+        
+                            <button class="hist-link" style="background:none; border:none; cursor:pointer;"
+                                onclick="viewBudget('{{ b.id }}')">
+                                View
+                            </button>
+        
+                            <div id="data-{{ b.id }}" style="display:none;">
+                                <div class="results-wrapper">
+                                    <div class="ai-box" style="margin-bottom:15px; padding:10px;">
+                                        <div class="ai-content">
+                                            <h4>📅 Saved on {{ b.created_at.strftime('%b %d, %Y') }}</h4>
+                                            <p>Salary: ₱{{ "{:,.2f}".format(b.salary_amount) }} ({{ b.frequency }})</p>
+                                        </div>
+                                    </div>
+        
+                                    {% if b.ai_reasoning %}
+                                    <div class="ai-box"
+                                        style="margin-bottom:15px; border-left: 4px solid var(--primary-color);">
+                                        <div class="ai-content">
+                                            <h4 style="color: var(--primary-color)">🧠 AI Architect's Note:</h4>
+                                            <p style="font-style: italic;">"{{ b.ai_reasoning }}"</p>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+        
+                                    <table class="modern-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th class="text-right">Planned</th>
+                                                <th class="text-right highlight">AI Alloc.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% set ns_hist = namespace(total=0) %}
+                                            {% for item in b.items %}
+                                            {% set ns_hist.total = ns_hist.total + item.ai_amount %}
+                                            <tr>
+                                                <td>
+                                                    <span class="cat-name">{{ item.item_name }}</span>
+                                                    {% if item.is_auto_filled %}<span class="auto-tag">Auto</span>{% endif %}
+                                                </td>
+                                                <td class="text-right dim">
+                                                    {% if item.user_amount > 0 %}₱{{ "{:,.0f}".format(item.user_amount) }}{%
+                                                    else %}-{% endif %}
+                                                </td>
+                                                <td class="text-right strong-val">
+                                                    ₱{{ "{:,.0f}".format(item.ai_amount) }}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td>Total</td>
+                                                <td></td>
+                                                <td class="text-right total-val">₱{{ "{:,.0f}".format(ns_hist.total) }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="no-hist">No saved plans yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="viewBudgetModal" class="modal-overlay" style="display: none">
+    <div class="modal-content premium-modal">
+        <div class="modal-header">
+            <h3>📜 Blueprint Details</h3>
+            <button onclick="closeModal('viewBudgetModal')" class="close-modal-btn">×</button>
+        </div>
+
+        <div id="viewModalBody">
+        </div>
+
+        <div style="margin-top:20px; text-align:right;">
+            <button onclick="closeModal('viewBudgetModal')" class="tool-btn secondary">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Global Variable ---
+    let latestAIPlan = null;
+
+    // --- Helper: Format Currency (e.g. 1000 -> ₱1,000) ---
+    function formatCurrency(amount) {
+        return '₱' + parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    // --- View Modal Logic ---
+    function viewBudget(id) {
+        const content = document.getElementById('data-' + id).innerHTML;
+        document.getElementById('viewModalBody').innerHTML = content;
+        document.getElementById('viewBudgetModal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    window.onclick = function (event) {
+        if (event.target.classList.contains("modal-overlay")) {
+            event.target.style.display = "none";
+        }
+    };
+
+    // --- Calculator Logic ---
+    function updateCalculations() {
+        const salaryInput = document.getElementById('salaryInput');
+        const salary = parseFloat(salaryInput.value) || 0;
+        const frequency = document.querySelector('select[name="frequency"]').value;
+
+        let monthlyEst = salary;
+        if (frequency === 'Semi-Monthly') monthlyEst = salary * 2;
+        else if (frequency === 'Bi-Weekly') monthlyEst = salary * 2.16;
+        else if (frequency === 'Weekly') monthlyEst = salary * 4.33;
+
+        document.getElementById('monthly-est').innerText = '₱' + monthlyEst.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+        const inputs = document.querySelectorAll('.item-amount');
+        let totalExpenses = 0;
+        inputs.forEach(input => totalExpenses += parseFloat(input.value) || 0);
+
+        document.getElementById('total-fixed-display').innerText = '₱' + totalExpenses.toLocaleString();
+
+        const bar = document.getElementById('salary-health-bar');
+        const pctText = document.getElementById('health-pct');
+        const remText = document.getElementById('health-remaining');
+        const statusText = document.getElementById('meter-status');
+
+        if (salary === 0) {
+            bar.style.width = '0%';
+            pctText.innerText = "0%";
+            remText.innerText = "₱0.00";
+            return;
+        }
+
+        const percentage = (totalExpenses / salary) * 100;
+        const remaining = salary - totalExpenses;
+
+        bar.style.width = Math.min(percentage, 100) + '%';
+        pctText.innerText = percentage.toFixed(0) + '% Used';
+
+        if (remaining < 0) {
+            bar.className = 'meter-fill danger';
+            remText.innerHTML = `<span style="color:var(--danger-color)">⚠️ Over by ₱${Math.abs(remaining).toLocaleString()}</span>`;
+            statusText.innerText = "Over budget!";
+            statusText.style.color = "var(--danger-color)";
+        } else {
+            bar.className = 'meter-fill success';
+            remText.innerHTML = `<span style="color:var(--success-color)">₱${remaining.toLocaleString()} Free</span>`;
+            statusText.innerText = "Within budget";
+            statusText.style.color = "var(--text-light)";
+        }
+    }
+
+    function addItem(name = '', amount = '') {
+        const container = document.getElementById('items-container');
+        const div = document.createElement('div');
+        div.className = 'expense-row fade-in';
+        div.innerHTML = `
+            <input type="text" name="item_name[]" class="row-input name" value="${name}" placeholder="Category">
+            <div class="amount-group">
+                <span>₱</span>
+                <input type="number" name="item_amount[]" class="row-input amount item-amount" value="${amount}" placeholder="0" oninput="updateCalculations()">
+            </div>
+            <button type="button" class="row-remove" onclick="removeItem(this)">×</button>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        updateCalculations();
+    }
+
+    function addQuickItem(name) { addItem(name); }
+    function removeItem(btn) { btn.parentElement.remove(); updateCalculations(); }
+    document.addEventListener("DOMContentLoaded", updateCalculations);
+
+    // --- MANUAL TRIGGER LOGIC (UPDATED) ---
+    function triggerUpdate() {
+        if (!latestAIPlan) {
+            alert("No plan found. Try asking the AI again.");
+            return;
+        }
+
+        const inputs = document.getElementsByName('item_name[]');
+        const inputAmounts = document.getElementsByName('item_amount[]');
+        const tableRows = document.querySelectorAll('.results-wrapper .modern-table tbody tr'); // Get Table Rows
+
+        let updates = 0;
+        let runningTotal = 0;
+
+        for (const [category, newAmount] of Object.entries(latestAIPlan)) {
+            const cleanKey = category.replace(/[^\w\s]/gi, '').trim().toLowerCase();
+            const numAmount = parseFloat(newAmount);
+
+            // 1. Update Inputs (Left Side)
+            for (let i = 0; i < inputs.length; i++) {
+                const screenName = inputs[i].value.replace(/[^\w\s]/gi, '').trim().toLowerCase();
+
+                if (screenName.includes(cleanKey) || cleanKey.includes(screenName)) {
+                    inputAmounts[i].value = numAmount;
+
+                    // Flash Input
+                    inputAmounts[i].style.backgroundColor = "#dcfce7";
+                    setTimeout(() => {
+                        if (inputAmounts[i]) inputAmounts[i].style.backgroundColor = "";
+                    }, 1500);
+                    updates++;
+                }
+            }
+
+            // 2. Update Blueprint Table (Right Side)
+            tableRows.forEach(row => {
+                const catNameEl = row.querySelector('.cat-name');
+                if (catNameEl) {
+                    const rowName = catNameEl.innerText.replace(/[^\w\s]/gi, '').trim().toLowerCase();
+                    if (rowName.includes(cleanKey) || cleanKey.includes(rowName)) {
+
+                        // Update "Plan" Column (2nd TD)
+                        const planCell = row.querySelector('td:nth-child(2)');
+                        if (planCell) planCell.innerText = formatCurrency(numAmount);
+
+                        // Update "AI Fix" Column (3rd TD)
+                        const aiCell = row.querySelector('td:nth-child(3)');
+                        if (aiCell) {
+                            aiCell.innerText = formatCurrency(numAmount);
+                            // Flash Table Cell
+                            aiCell.style.color = "var(--success-color)";
+                            setTimeout(() => { aiCell.style.color = ""; }, 1500);
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Update Table Total
+        const totalCell = document.querySelector('.results-wrapper .modern-table tfoot .total-val');
+        if (totalCell) {
+            // Recalculate total from inputs since they are the source of truth now
+            let total = 0;
+            inputAmounts.forEach(inp => total += parseFloat(inp.value) || 0);
+            totalCell.innerText = formatCurrency(total);
+        }
+
+        if (updates > 0) {
+            updateCalculations(); // Update Meter
+            // Update button visual
+            const btn = document.querySelector('.apply-btn');
+            if (btn) {
+                btn.innerHTML = "<span>✅</span> Updated!";
+                btn.style.background = "var(--success-color)";
+                setTimeout(() => {
+                    btn.innerHTML = "<span>✨</span> Apply Changes";
+                    btn.style.background = "var(--primary-color)";
+                }, 3000);
+            }
+        } else {
+            alert("⚠️ Couldn't match categories. Please check spelling.");
+        }
+    }
+
+    // --- CHAT LOGIC ---
+    async function sendChatback() {
+        const input = document.getElementById('user-chat-input');
+        const window = document.getElementById('chat-window');
+        const message = input.value.trim();
+
+        if (!message) return;
+
+        // 1. Show User Message
+        window.innerHTML += `<div class="msg user-msg">${message}</div>`;
+        input.value = '';
+        window.scrollTop = window.scrollHeight;
+
+        // 2. Placeholder
+        const tempId = 'ai-' + Date.now();
+        window.innerHTML += `<div class="msg ai-msg" id="${tempId}">Analyzing...</div>`;
+        window.scrollTop = window.scrollHeight;
+
+        // 3. Scrape Context
+        let memoryContext = "Salary: " + document.getElementById('salaryInput').value + "\n";
+        const names = document.getElementsByName('item_name[]');
+        const amounts = document.getElementsByName('item_amount[]');
+        for (let i = 0; i < names.length; i++) {
+            if (names[i].value) memoryContext += `- ${names[i].value}: ${amounts[i].value}\n`;
+        }
+
+        try {
+            const response = await fetch('/smart-budget/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message, context: memoryContext })
+            });
+
+            const data = await response.json();
+            let rawReply = data.reply || "No response";
+
+            // Clean up Markdown if present
+            rawReply = rawReply.replace(/```json/g, "").replace(/```/g, "");
+
+            const bubble = document.getElementById(tempId);
+            console.log("AI RAW REPLY:", rawReply);
+
+            // 4. Check for JSON Plan
+            try {
+                const jsonStart = rawReply.indexOf('{');
+                const jsonEnd = rawReply.lastIndexOf('}');
+
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    const jsonPart = rawReply.substring(jsonStart, jsonEnd + 1);
+                    const aiCommand = JSON.parse(jsonPart);
+
+                    if (aiCommand.new_plan) {
+                        latestAIPlan = aiCommand.new_plan;
+                        const replyText = aiCommand.reply || "I've optimized your budget plan.";
+
+                        bubble.innerHTML = `
+                            ${replyText}
+                            <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(0,0,0,0.1);">
+                                <button type="button" onclick="triggerUpdate()" class="apply-btn"
+                                style="width:100%; background:var(--primary-color); color:white; border:none; padding:10px 12px; border-radius:8px; cursor:pointer; font-size:0.9rem; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; transition: transform 0.2s;">
+                                    <span>✨</span> Apply Changes
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        bubble.innerText = rawReply;
+                    }
+                } else {
+                    bubble.innerText = rawReply;
+                }
+            } catch (e) {
+                bubble.innerText = rawReply;
+            }
+
+        } catch (e) {
+            document.getElementById(tempId).innerText = "System Error.";
+        }
+        window.scrollTop = window.scrollHeight;
+    }
+</script>
+{% endblock %}

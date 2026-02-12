@@ -85,17 +85,15 @@ block content %}
       <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-primary)">
         💳 Quick Wallet
       </h3>
-      <a
-        href="{{ url_for('profile') }}"
-        class="see-all-link"
-        style="
-          font-size: 0.9rem;
-          color: var(--primary-color);
-          text-decoration: none;
-          font-weight: 600;
-        "
-        >Manage Cards →</a
-      >
+      <a href="{{ url_for('profile') }}" class="see-all-link" style="
+                font-size: 0.9rem;
+                color: var(--primary-color);
+                text-decoration: none;
+                font-weight: 600;
+              ">
+        <span class="desktop-label">Manage Cards →</span>
+        <span class="mobile-label">Manage Cards & Profile →</span>
+      </a>
     </div>
 
     <div class="mini-wallet-carousel">
@@ -220,7 +218,7 @@ block content %}
               required
               class="modern-input"
             />
-            <select name="type" class="modern-select">
+            <select name="type" class="premium-select">
               <option value="daily">Daily Exp.</option>
               <option value="income">Income</option>
               <option value="savings">To Savings</option>

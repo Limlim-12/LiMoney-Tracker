@@ -4,6 +4,11 @@ from functools import wraps
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
+import requests
+import json
+import re
+import os
+
 
 # -------------------------------
 # Login required decorator
@@ -20,14 +25,85 @@ def login_required(f):
 
 
 # -------------------------------
-# Routes registration
+# 🧠 AI HELPER FUNCTION (Global Scope)
+# -------------------------------
+def ask_llama_budget(salary, frequency, fixed_expenses, zero_items, remaining_budget):
+    API_KEY = os.environ.get("GROQ_API_KEY")  #
+    API_URL = "https://api.groq.com/openai/v1/chat/completions"  #
+    MODEL = "llama-3.3-70b-versatile"  #
+
+    total_fixed = sum(fixed_expenses.values())  #
+    fixed_ratio = (total_fixed / salary) * 100 if salary > 0 else 0  #
+
+    status = "STABLE"  #
+    if fixed_ratio > 60:
+        status = "CRITICAL (High Fixed Costs)"  #
+    elif fixed_ratio < 40:
+        status = "EXCELLENT (High Disposable Income)"  #
+
+    # Updated prompt to include reasoning
+    prompt = f"""
+    You are a Financial API. Distribute the remaining budget of {remaining_budget} into the categories provided.
+    
+    CONTEXT:
+    - Income: {salary} ({frequency})
+    - Fixed Expenses: {total_fixed} ({fixed_ratio:.1f}%)
+    - Status: {status}
+    
+    CATEGORIES TO FILL:
+    {json.dumps(zero_items)}
+    
+    RULES:
+    1. The sum of allocated amounts MUST equal exactly {remaining_budget}.
+    2. Use the EXACT category names provided as keys in the "plan" object.
+    3. Provide a concise, professional 2-3 sentence "reasoning" explaining your logic.
+    4. Return ONLY a valid JSON object with keys: "plan" and "reasoning".
+    """
+
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a JSON-only financial API that provides a budget 'plan' and its 'reasoning'.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.2,  # Slightly higher for natural reasoning text
+    }
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+    }  #
+
+    try:
+        response = requests.post(API_URL, json=payload, headers=headers)  #
+        data = response.json()  #
+
+        if "choices" in data:
+            raw_content = data["choices"][0]["message"]["content"]  #
+            print(f"\n🤖 AI RAW RESPONSE: {raw_content}\n")  #
+
+            start = raw_content.find("{")  #
+            end = raw_content.rfind("}") + 1  #
+            if start != -1 and end != -1:
+                return json.loads(raw_content[start:end])  #
+            return None
+        else:
+            return None
+    except Exception as e:
+        print(f"❌ Connection Error: {e}")
+        return None
+
+
+# -------------------------------
+# Routes registration (Main Function)
 # -------------------------------
 def init_routes(app):
-    app.secret_key = "supersecretkey"  # ⚠️ Move to env var in production
+    app.secret_key = "supersecretkey"
 
-    # -------------------------------
-    # Template filter for date formatting
-    # -------------------------------
+    # --- Date Filter ---
     @app.template_filter("datetimeformat")
     def datetimeformat(value, format="%b %d, %Y"):
         try:
@@ -39,8 +115,255 @@ def init_routes(app):
                 try:
                     dt = datetime.strptime(value, "%Y-%m-%d")
                 except (ValueError, TypeError):
-                    return value  # Return original value if parsing fails
+                    return value
         return dt.strftime(format)
+
+    # ---------------------------------------------------
+    #  SMART BUDGET ROUTE (INDENTED INSIDE init_routes)
+    # ---------------------------------------------------
+    @app.route("/smart-budget", methods=["GET", "POST"])
+    @login_required
+    def smart_budget():
+        user_id = session["user_id"]
+        results = None
+        salary_info = None
+        ai_note = None
+        ai_reasoning = None  # Added to track AI explanation
+
+        if request.method == "POST":
+            try:
+                salary = float(request.form.get("salary_amount", 0))
+                frequency = request.form.get("frequency", "Monthly")
+                item_names = request.form.getlist("item_name[]")
+                item_amounts = request.form.getlist("item_amount[]")
+
+                # Retrieve hidden reasoning if saving, or empty if generating new
+                current_reasoning = request.form.get("ai_reasoning_hidden", "")
+                save_mode = request.form.get("save_budget") == "true"
+
+                parsed_items = []
+                total_fixed = 0
+                zero_items_indices = []
+
+                for i in range(len(item_names)):
+                    name = item_names[i].strip()
+                    if not name:
+                        continue
+
+                    try:
+                        amt = float(item_amounts[i])
+                    except:
+                        amt = 0.0
+
+                    parsed_items.append(
+                        {"name": name, "user": amt, "ai": amt, "auto": False}
+                    )
+
+                    if amt > 0:
+                        total_fixed += amt
+                    else:
+                        zero_items_indices.append(i)
+
+                remaining = salary - total_fixed
+
+                # --- DISTRIBUTION LOGIC ---
+                if remaining > 0 and zero_items_indices and not save_mode:
+                    # Prepare data for AI
+                    fixed_dict = {
+                        item["name"]: item["user"]
+                        for item in parsed_items
+                        if item["user"] > 0
+                    }
+                    zero_names = [parsed_items[i]["name"] for i in zero_items_indices]
+
+                    # Call upgraded AI helper
+                    print("🤖 Asking Llama...")
+                    ai_response = ask_llama_budget(
+                        salary, frequency, fixed_dict, zero_names, remaining
+                    )
+
+                    if ai_response and "plan" in ai_response:
+                        ai_plan = ai_response["plan"]
+                        ai_reasoning = ai_response.get(
+                            "reasoning", "AI optimized your budget."
+                        )
+                        ai_note = "✨ AI (Llama 3) successfully distributed your remaining funds."
+
+                        for idx in zero_items_indices:
+                            original_name = parsed_items[idx]["name"]
+                            allocated = 0
+
+                            # Smart Match Logic
+                            if original_name in ai_plan:
+                                allocated = ai_plan[original_name]
+                            else:
+                                simple_name = (
+                                    re.sub(r"[^\w\s]", "", original_name)
+                                    .strip()
+                                    .lower()
+                                )
+                                for key, val in ai_plan.items():
+                                    simple_key = (
+                                        re.sub(r"[^\w\s]", "", key).strip().lower()
+                                    )
+                                    if (
+                                        simple_name == simple_key
+                                        or simple_name in simple_key
+                                    ):
+                                        allocated = val
+                                        break
+
+                            parsed_items[idx]["ai"] = float(allocated)
+                            parsed_items[idx]["auto"] = True
+                    else:
+                        ai_note = (
+                            f"📡 (Offline Mode) Distributed ₱{remaining:,.2f} equally."
+                        )
+                        ai_reasoning = "I couldn't reach the AI brain, so I split the remaining budget equally."
+                        share = remaining / len(zero_items_indices)
+                        for idx in zero_items_indices:
+                            parsed_items[idx]["ai"] = share
+                            parsed_items[idx]["auto"] = True
+
+                elif remaining < 0:
+                    ai_note = "⚠️ Expenses exceed income!"
+                    ai_reasoning = "Your fixed expenses are higher than your income. Please reduce expenses."
+                elif remaining == 0:
+                    ai_note = "✅ Perfect balance."
+
+                # --- SAVE TO DB ---
+                if save_mode:
+                    # Passes the reasoning text to the model
+                    budget_entry = models.create_salary_budget(
+                        user_id, salary, frequency, current_reasoning
+                    )
+                    for item in parsed_items:
+                        models.add_salary_item(
+                            budget_entry.id,
+                            item["name"],
+                            item["user"],
+                            item["ai"],
+                            item["auto"],
+                        )
+                    flash("Budget Plan Saved Successfully!", "success")
+                    return redirect(url_for("smart_budget"))
+
+                results = parsed_items
+                salary_info = {"amount": salary, "frequency": frequency}
+
+            except Exception as e:
+                flash(f"Error: {str(e)}", "error")
+                print(e)
+
+        history = models.get_user_budgets(user_id)
+        return render_template(
+            "smart_budget.html",
+            results=results,
+            salary_info=salary_info,
+            ai_note=ai_note,
+            ai_reasoning=ai_reasoning,  # Pass reasoning to template
+            history=history,
+            username=session.get("username", "User"),
+        )
+
+    @app.route("/smart-budget/view/<int:id>")
+    @login_required
+    def view_smart_budget(id):
+        details = models.get_budget_details(id)
+        if not details or details["info"]["user_id"] != session["user_id"]:
+            flash("Budget not found", "error")
+            return redirect(url_for("smart_budget"))
+        return render_template("smart_budget_view.html", budget=details)
+
+    import re  # <--- Make sure to import 're' at the top of your file
+
+    # ---------------------------------------------------
+    #  SMART BUDGET CHAT ROUTE (Add inside init_routes)
+    # ---------------------------------------------------
+    @app.route("/smart-budget/chat", methods=["POST"])
+    @login_required
+    def smart_budget_chat():
+        import re
+
+        data = request.json
+        user_message = data.get("message")
+        full_context = data.get("context", "No context.")
+
+        API_KEY = os.environ.get("GROQ_API_KEY")
+        API_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+        # --- SMART RE-BALANCING LOGIC ---
+        system_instruction = """
+        You are the LiMoney AI Architect. You are a STRICT BUDGET CALCULATOR.
+
+        YOUR GOAL: 
+        When the user changes one item, you must RE-CALCULATE the rest of the budget to fit the Total Income.
+
+        ALGORITHM TO FOLLOW:
+        1. Identify the user's new constraint (e.g., "Food = 8000").
+        2. Identify the Total Income from the context.
+        3. Keep "Fixed" bills (Rent, Internet, Utilities) UNCHANGED unless explicitly asked.
+        4. Subtract (Fixed Costs + New User Item) from Total Income.
+        5. Distribute the REMAINING result across the other flexible categories (Savings, Wants, Misc).
+        6. CRITICAL: Do NOT set flexible items to 0 if there is money left. Reduce them proportionally.
+        
+        EXAMPLE:
+        Income: 10,000. Rent: 3,000. Food: 2,000. Savings: 5,000.
+        User: "Set Food to 6,000"
+        Math: 10k - 3k (Rent) - 6k (New Food) = 1,000 remaining.
+        Action: Set Savings to 1,000 (instead of 0).
+        
+        OUTPUT FORMAT:
+        Return a JSON object with the FULL updated list of ALL categories.
+        {
+          "new_plan": { 
+             "Rent": 3000, 
+             "Food": 6000, 
+             "Savings": 1000 
+          },
+          "reply": "I've increased Food to 6,000. To make this work, I adjusted Savings to 1,000."
+        }
+        """
+
+        prompt = f"""
+        CURRENT BLUEPRINT:
+        {full_context}
+
+        USER COMMAND:
+        "{user_message}"
+        """
+
+        payload = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": system_instruction},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.1,  # Very low temperature for strict math
+        }
+
+        try:
+            r = requests.post(
+                API_URL, json=payload, headers={"Authorization": f"Bearer {API_KEY}"}
+            )
+            if r.status_code == 200:
+                raw_content = r.json()["choices"][0]["message"]["content"]
+
+                # --- CLEANER: Extract JSON if mixed with text ---
+                try:
+                    json_match = re.search(r"\{.*\}", raw_content, re.DOTALL)
+                    if json_match:
+                        clean_json = json_match.group(0)
+                        return {"reply": clean_json}
+                except:
+                    pass
+
+                return {"reply": raw_content}
+            else:
+                return {"reply": "I'm having trouble thinking right now."}, 500
+        except Exception as e:
+            print(e)
+            return {"reply": "Connection error."}, 500
 
     # ------------------ AUTH ------------------
     @app.route("/account")
@@ -73,7 +396,7 @@ def init_routes(app):
         password = request.form["password"]
         user = models.verify_user(username, password)
         if user:
-            session["user_id"], session["username"] = user[0], user[1]
+            session["user_id"], session["username"] = user["id"], user["username"]
             flash(f"Welcome back, {username}!", "success")
             return redirect(url_for("dashboard"))
         else:

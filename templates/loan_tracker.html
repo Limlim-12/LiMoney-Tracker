@@ -99,25 +99,19 @@
         View Payment History ↓
       </button>
 
-      <div
-        id="hist-{{ loan.id }}"
-        class="history-dropdown"
-        style="display: none"
-      >
-        {% set history = get_loan_payments(loan.id) %} {% if history %}
+      <div id="hist-{{ loan.id }}" class="history-dropdown" style="display: none">
+        {% set history = get_loan_payments(loan.id) %}
+        {% if history %}
         <ul class="history-list">
           {% for pay in history %}
           <li class="history-item deposit">
             <div class="history-left">
-              <span class="history-type">💰 Payment</span>
-              <span
-                class="history-date local-time"
-                data-utc="{{ pay.created_at }}"
-              >
-                📅 {{ pay.created_at }}
+              <span class="history-type">Payment Received</span>
+              <span class="history-date local-time" data-utc="{{ pay.created_at }}">
+                {{ pay.created_at }}
               </span>
             </div>
-
+        
             <span class="history-amount text-success">
               +₱{{ "%.2f"|format(pay.amount) }}
             </span>
@@ -125,10 +119,8 @@
           {% endfor %}
         </ul>
         {% else %}
-        <div
-          style="text-align: center; padding: 1rem; color: var(--text-light)"
-        >
-          <p style="margin: 0">No payments yet.</p>
+        <div style="text-align: center; padding: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+          <p style="margin: 0; opacity: 0.7;">No payments recorded yet.</p>
         </div>
         {% endif %}
       </div>

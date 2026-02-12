@@ -1,421 +1,348 @@
-import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from app import db  # Importing db from your app.py
 
-DB_NAME = "money.db"
-
-
-# ------------------ DB CONNECTION ------------------
-def get_db_connection():
-    conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row  # returns rows as dict-like objects
-    return conn
+# ==========================================
+# 1. DATABASE TABLES (SQLAlchemy Models)
+# ==========================================
 
 
-def init_db():
-    conn = get_db_connection()
-    c = conn.cursor()
+class User(db.Model):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
 
-    # Users table
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            email TEXT UNIQUE,
-            password TEXT
-        )"""
+
+class Transaction(db.Model):
+    __tablename__ = "transactions"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    description = db.Column(db.String(200))
+    amount = db.Column(db.Float, nullable=False)
+    type = db.Column(db.String(20), nullable=False)
+
+
+class Loan(db.Model):
+    __tablename__ = "loans"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    loan_name = db.Column(db.String(100))
+    amount = db.Column(db.Float)
+    start_date = db.Column(db.String(20))
+    end_date = db.Column(db.String(20))
+    monthly_payment = db.Column(db.Float)
+    notes = db.Column(db.Text)
+    paid_amount = db.Column(db.Float, default=0)
+    status = db.Column(db.String(20), default="active")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class LoanPayment(db.Model):
+    __tablename__ = "loan_payments"
+    id = db.Column(db.Integer, primary_key=True)
+    loan_id = db.Column(db.Integer, db.ForeignKey("loans.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    amount = db.Column(db.Float)
+    pay_date = db.Column(db.String(20))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Savings(db.Model):
+    __tablename__ = "savings"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    savings_name = db.Column(db.String(100), nullable=False)
+    target_amount = db.Column(db.Float, default=0)
+    current_balance = db.Column(db.Float, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class SavingsTransaction(db.Model):
+    __tablename__ = "savings_transactions"
+    id = db.Column(db.Integer, primary_key=True)
+    savings_id = db.Column(db.Integer, db.ForeignKey("savings.id"), nullable=False)
+    type = db.Column(db.String(20))
+    amount = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    note = db.Column(db.String(200))
+
+
+class BudgetCategory(db.Model):
+    __tablename__ = "budget_categories"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    planned_budget = db.Column(db.Float, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class BudgetTransaction(db.Model):
+    __tablename__ = "budget_transactions"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    category_id = db.Column(
+        db.Integer, db.ForeignKey("budget_categories.id"), nullable=False
+    )
+    description = db.Column(db.String(200))
+    amount = db.Column(db.Float, nullable=False)
+    expense_type = db.Column(db.String(20), default="daily")
+    savings_id = db.Column(db.Integer, db.ForeignKey("savings.id"), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class UserProfile(db.Model):
+    __tablename__ = "user_profiles"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False
+    )
+    surname = db.Column(db.String(100), nullable=True)
+    firstname = db.Column(db.String(100), nullable=True)
+    middle_initial = db.Column(db.String(10))
+    nickname = db.Column(db.String(50))
+    occupation = db.Column(db.String(100))
+    company = db.Column(db.String(100))
+    salary = db.Column(db.Float, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
 
-    # Transactions table
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            description TEXT,
-            amount REAL,
-            type TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )"""
-    )
 
-    # Loans table
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS loans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            loan_name TEXT,
-            amount REAL,
-            start_date TEXT,
-            end_date TEXT,
-            monthly_payment REAL,
-            notes TEXT,
-            paid_amount REAL DEFAULT 0,
-            status TEXT DEFAULT 'active',
-            created_at TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )"""
-    )
-
-    # Loan payments
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS loan_payments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            loan_id INTEGER,
-            user_id INTEGER,
-            amount REAL,
-            pay_date TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (loan_id) REFERENCES loans(id),
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )"""
-    )
-
-    # Savings table
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS savings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            savings_name TEXT NOT NULL,
-            target_amount REAL DEFAULT 0,  -- <<< ADD THIS LINE
-            current_balance REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )"""
-    )
-
-    # Savings transactions
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS savings_transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            savings_id INTEGER NOT NULL,
-            type TEXT CHECK(type IN ('deposit','withdraw')),
-            amount REAL NOT NULL,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            note TEXT,
-            FOREIGN KEY(savings_id) REFERENCES savings(id)
-        )"""
-    )
-
-    # Budget Categories
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS budget_categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            planned_budget REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )"""
-    )
-
-    # Budget Transactions (expenses assigned to categories)
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS budget_transactions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            category_id INTEGER NOT NULL,
-            description TEXT,
-            amount REAL NOT NULL,
-            expense_type TEXT DEFAULT 'daily',
-            savings_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id),
-            FOREIGN KEY(category_id) REFERENCES budget_categories(id),
-            FOREIGN KEY(savings_id) REFERENCES savings(id)
-        )"""
-    )
-
-    # User Profiles table
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS user_profiles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER UNIQUE,
-            surname TEXT NOT NULL,
-            firstname TEXT NOT NULL,
-            middle_initial TEXT,
-            nickname TEXT,
-            occupation TEXT,
-            company TEXT,
-            salary REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )"""
-    )
-
-    # NEW: Wallet Cards Table
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS cards (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            bank_name TEXT,
-            card_type TEXT, -- e.g., 'Debit', 'Credit'
-            last_four TEXT,
-            balance REAL,
-            color_theme TEXT, -- 'blue', 'gold', 'black', 'platinum'
-            usage_tag TEXT, -- e.g., 'Grocery', 'Gas', 'Online'
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )"""
-    )
-    conn.commit()
-    conn.close()
+class Card(db.Model):
+    __tablename__ = "cards"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    bank_name = db.Column(db.String(100))
+    card_type = db.Column(db.String(50))
+    last_four = db.Column(db.String(4))
+    balance = db.Column(db.Float)
+    color_theme = db.Column(db.String(20))
+    usage_tag = db.Column(db.String(50))
 
 
-# ------------------ USER FUNCTIONS ------------------
+# --- Helper: Convert Database Object to Dictionary ---
+def to_dict(obj):
+    if not obj:
+        return None
+    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
+
+
+# ==========================================
+# 2. USER FUNCTIONS
+# ==========================================
+
+
 def create_user(username, email, password):
-    conn = get_db_connection()
-    c = conn.cursor()
     hashed_password = generate_password_hash(password)
+    new_user = User(username=username, email=email, password=hashed_password)
     try:
-        c.execute(
-            "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-            (username, email, hashed_password),
-        )
-        conn.commit()
+        db.session.add(new_user)
+        db.session.commit()
         return True
-    except sqlite3.IntegrityError:
+    except:
+        db.session.rollback()
         return False
-    finally:
-        conn.close()
 
 
 def get_user_by_username(username):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM users WHERE username=?", (username,))
-    user = c.fetchone()
-    conn.close()
-    return user
+    user = User.query.filter_by(username=username).first()
+    return to_dict(user)
 
 
 def verify_user(username, password):
-    user = get_user_by_username(username)
-    if user and check_password_hash(user["password"], password):
-        return user
+    user = User.query.filter_by(username=username).first()
+    if user and check_password_hash(user.password, password):
+        return to_dict(user)
     return None
 
 
-# ------------------ TRANSACTION FUNCTIONS ------------------
+def init_db():
+    # Handled automatically in app.py now
+    pass
+
+
+# ==========================================
+# 3. TRANSACTION FUNCTIONS
+# ==========================================
+
+
 def get_transactions(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM transactions WHERE user_id=?", (user_id,))
-    transactions = c.fetchall()
-    conn.close()
-    return [dict(t) for t in transactions]
+    txns = Transaction.query.filter_by(user_id=user_id).all()
+    return [to_dict(t) for t in txns]
 
 
 def add_transaction(user_id, description, amount, t_type):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO transactions (user_id, description, amount, type) VALUES (?, ?, ?, ?)",
-        (user_id, description, amount, t_type),
+    new_txn = Transaction(
+        user_id=user_id, description=description, amount=amount, type=t_type
     )
-    conn.commit()
-    conn.close()
+    db.session.add(new_txn)
+    db.session.commit()
 
 
-# ------------------ LOAN FUNCTIONS ------------------
+# ==========================================
+# 4. LOAN FUNCTIONS
+# ==========================================
+
+
 def add_loan(user_id, loan_name, amount, start_date, end_date, monthly_payment, notes):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """INSERT INTO loans 
-           (user_id, loan_name, amount, start_date, end_date, monthly_payment, notes, status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (
-            user_id,
-            loan_name,
-            amount,
-            start_date,
-            end_date,
-            monthly_payment,
-            notes,
-            "active",
-            datetime.utcnow().isoformat(),
-        ),
+    new_loan = Loan(
+        user_id=user_id,
+        loan_name=loan_name,
+        amount=amount,
+        start_date=start_date,
+        end_date=end_date,
+        monthly_payment=monthly_payment,
+        notes=notes,
+        status="active",
     )
-    conn.commit()
-    conn.close()
+    db.session.add(new_loan)
+    db.session.commit()
 
 
 def get_loans(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM loans WHERE user_id=?", (user_id,))
-    loans = c.fetchall()
-    conn.close()
-    return [dict(l) for l in loans]
+    loans = Loan.query.filter_by(user_id=user_id).all()
+    return [to_dict(l) for l in loans]
 
 
 def get_loan_by_id(loan_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM loans WHERE id=?", (loan_id,))
-    loan = c.fetchone()
-    conn.close()
-    return dict(loan) if loan else None
+    loan = Loan.query.get(loan_id)
+    return to_dict(loan)
 
 
 def pay_loan(loan_id, monthly_payment):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "UPDATE loans SET paid_amount = paid_amount + ? WHERE id=?",
-        (monthly_payment, loan_id),
-    )
-    conn.commit()
-    conn.close()
+    loan = Loan.query.get(loan_id)
+    if loan:
+        loan.paid_amount += monthly_payment
+        db.session.commit()
 
 
 def delete_loan(loan_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
-    conn.commit()
-    conn.close()
+    loan = Loan.query.get(loan_id)
+    if loan:
+        db.session.delete(loan)
+        db.session.commit()
 
 
 def update_loan_status(loan_id, status):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("UPDATE loans SET status=? WHERE id=?", (status, loan_id))
-    conn.commit()
-    conn.close()
+    loan = Loan.query.get(loan_id)
+    if loan:
+        loan.status = status
+        db.session.commit()
 
 
 def add_loan_payment(loan_id, user_id, amount, pay_date):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """INSERT INTO loan_payments (loan_id, user_id, amount, pay_date)
-           VALUES (?, ?, ?, ?)""",
-        (loan_id, user_id, amount, pay_date),
+    payment = LoanPayment(
+        loan_id=loan_id, user_id=user_id, amount=amount, pay_date=pay_date
     )
-    conn.commit()
-    conn.close()
+    db.session.add(payment)
+    db.session.commit()
 
 
 def get_loan_payments(loan_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    # Updated to sort by created_at DESC (Newest first)
-    c.execute("SELECT * FROM loan_payments WHERE loan_id=? ORDER BY created_at DESC", (loan_id,))
-    return c.fetchall()
-
-
-def get_total_paid_this_month(loan_id, year, month):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """SELECT SUM(amount) as total
-           FROM loan_payments
-           WHERE loan_id=? AND strftime('%Y', pay_date)=? AND strftime('%m', pay_date)=?""",
-        (loan_id, str(year), f"{month:02}"),
+    payments = (
+        LoanPayment.query.filter_by(loan_id=loan_id)
+        .order_by(LoanPayment.created_at.desc())
+        .all()
     )
-    total = c.fetchone()[0]
-    conn.close()
-    return total or 0
+    return [to_dict(p) for p in payments]
 
 
 def get_total_loan_payments(loan_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "SELECT SUM(amount) as total FROM loan_payments WHERE loan_id=?", (loan_id,)
+    result = (
+        db.session.query(db.func.sum(LoanPayment.amount))
+        .filter_by(loan_id=loan_id)
+        .scalar()
     )
-    total = c.fetchone()[0]
-    conn.close()
-    return total or 0
+    return result or 0
 
 
-# ------------------ SAVINGS FUNCTIONS ------------------
+def get_total_paid_this_month(loan_id, year, month):
+    # This queries payments by string matching the date (YYYY-MM)
+    # Assumes pay_date format is YYYY-MM-DD
+    search_str = f"{year}-{month:02}"
+    payments = LoanPayment.query.filter(
+        LoanPayment.loan_id == loan_id, LoanPayment.pay_date.like(f"{search_str}%")
+    ).all()
+    return sum(p.amount for p in payments)
+
+
+# ==========================================
+# 5. SAVINGS FUNCTIONS
+# ==========================================
+
+
 def add_savings(user_id, savings_name, target_amount=0):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """INSERT INTO savings (user_id, savings_name, target_amount, current_balance)
-           VALUES (?, ?, ?, 0)""",
-        (user_id, savings_name, target_amount),
+    new_savings = Savings(
+        user_id=user_id,
+        savings_name=savings_name,
+        target_amount=target_amount,
+        current_balance=0,
     )
-    conn.commit()
-    conn.close()
+    db.session.add(new_savings)
+    db.session.commit()
 
 
 def get_active_savings(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM savings WHERE user_id=?", (user_id,))
-    savings = c.fetchall()
-    conn.close()
-    return [dict(s) for s in savings]
+    savings = Savings.query.filter_by(user_id=user_id).all()
+    return [to_dict(s) for s in savings]
+
+
+def get_savings(user_id):
+    return get_active_savings(user_id)
 
 
 def deposit_savings(savings_id, amount, note=""):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """INSERT INTO savings_transactions (savings_id, type, amount, note) 
-           VALUES (?, 'deposit', ?, ?)""",
-        (savings_id, amount, note),
+    txn = SavingsTransaction(
+        savings_id=savings_id, type="deposit", amount=amount, note=note
     )
-    c.execute(
-        "UPDATE savings SET current_balance = current_balance + ? WHERE id=?",
-        (amount, savings_id),
-    )
-    conn.commit()
-    conn.close()
+    db.session.add(txn)
+    savings = Savings.query.get(savings_id)
+    if savings:
+        savings.current_balance += amount
+    db.session.commit()
 
 
 def withdraw_savings(savings_id, amount, note=""):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """INSERT INTO savings_transactions (savings_id, type, amount, note) 
-           VALUES (?, 'withdraw', ?, ?)""",
-        (savings_id, amount, note),
+    txn = SavingsTransaction(
+        savings_id=savings_id, type="withdraw", amount=amount, note=note
     )
-    c.execute(
-        "UPDATE savings SET current_balance = current_balance - ? WHERE id=?",
-        (amount, savings_id),
-    )
-    conn.commit()
-    conn.close()
+    db.session.add(txn)
+    savings = Savings.query.get(savings_id)
+    if savings:
+        savings.current_balance -= amount
+    db.session.commit()
 
 
 def get_savings_transactions(savings_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "SELECT * FROM savings_transactions WHERE savings_id=? ORDER BY timestamp DESC",
-        (savings_id,),
+    txns = (
+        SavingsTransaction.query.filter_by(savings_id=savings_id)
+        .order_by(SavingsTransaction.timestamp.desc())
+        .all()
     )
-    txns = c.fetchall()
-    conn.close()
-    return [dict(t) for t in txns]
-
-def get_savings(user_id):
-    """Fetch all savings goals for a user."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM savings WHERE user_id=?", (user_id,))
-    return c.fetchall()
+    return [to_dict(t) for t in txns]
 
 
-def get_savings_transactions(savings_id):
-    """Fetch history for a specific savings goal."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    # FIX: Change 'created_at' to 'timestamp' to match your database table
-    c.execute(
-        "SELECT * FROM savings_transactions WHERE savings_id=? ORDER BY timestamp DESC",
-        (savings_id,),
+def get_total_savings(user_id):
+    result = (
+        db.session.query(db.func.sum(Savings.current_balance))
+        .filter_by(user_id=user_id)
+        .scalar()
     )
-    return c.fetchall()
+    return result or 0
 
 
-# ------------------ BUDGET FUNCTIONS ------------------
+def delete_savings(savings_id):
+    SavingsTransaction.query.filter_by(savings_id=savings_id).delete()
+    Savings.query.filter_by(id=savings_id).delete()
+    db.session.commit()
+
+
+# ==========================================
+# 6. BUDGET FUNCTIONS
+# ==========================================
 
 DEFAULT_CATEGORIES = [
     "Food & Drinks",
@@ -432,39 +359,21 @@ DEFAULT_CATEGORIES = [
 
 
 def add_category(user_id, name, planned_budget=0):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO budget_categories (user_id, name, planned_budget) VALUES (?, ?, ?)",
-        (user_id, name, planned_budget),
-    )
-    conn.commit()
-    conn.close()
+    new_cat = BudgetCategory(user_id=user_id, name=name, planned_budget=planned_budget)
+    db.session.add(new_cat)
+    db.session.commit()
 
 
 def seed_default_categories(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM budget_categories WHERE user_id=?", (user_id,))
-    count = c.fetchone()[0]
-
+    count = BudgetCategory.query.filter_by(user_id=user_id).count()
     if count == 0:
-        for cat in DEFAULT_CATEGORIES:
-            c.execute(
-                "INSERT INTO budget_categories (user_id, name, planned_budget) VALUES (?, ?, ?)",
-                (user_id, cat, 0),
-            )
-        conn.commit()
-    conn.close()
+        for cat_name in DEFAULT_CATEGORIES:
+            add_category(user_id, cat_name, 0)
 
 
 def get_categories(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM budget_categories WHERE user_id=?", (user_id,))
-    cats = c.fetchall()
-    conn.close()
-    return [dict(c) for c in cats]
+    cats = BudgetCategory.query.filter_by(user_id=user_id).all()
+    return [to_dict(c) for c in cats]
 
 
 def get_budget_categories(user_id):
@@ -473,283 +382,276 @@ def get_budget_categories(user_id):
 
 
 def update_category_budget(category_id, planned_budget):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "UPDATE budget_categories SET planned_budget=? WHERE id=?",
-        (planned_budget, category_id),
-    )
-    conn.commit()
-    conn.close()
+    cat = BudgetCategory.query.get(category_id)
+    if cat:
+        cat.planned_budget = planned_budget
+        db.session.commit()
+
+
+def update_budget_category(user_id, category_id, planned_budget):
+    cat = BudgetCategory.query.filter_by(id=category_id, user_id=user_id).first()
+    if cat:
+        cat.planned_budget = planned_budget
+        db.session.commit()
 
 
 def add_budget_transaction(
     user_id, category_id, description, amount, expense_type="daily", savings_id=None
 ):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """INSERT INTO budget_transactions 
-           (user_id, category_id, description, amount, expense_type, savings_id) 
-           VALUES (?, ?, ?, ?, ?, ?)""",
-        (user_id, category_id, description, amount, expense_type, savings_id),
+    new_expense = BudgetTransaction(
+        user_id=user_id,
+        category_id=category_id,
+        description=description,
+        amount=amount,
+        expense_type=expense_type,
+        savings_id=savings_id,
     )
+    db.session.add(new_expense)
 
     if savings_id:
-        c.execute(
-            """INSERT INTO savings_transactions (savings_id, type, amount, note)
-               VALUES (?, 'withdraw', ?, ?)""",
-            (savings_id, amount, f"Budget expense: {description}"),
-        )
-        c.execute(
-            "UPDATE savings SET current_balance = current_balance - ? WHERE id=?",
-            (amount, savings_id),
-        )
+        withdraw_savings(savings_id, amount, f"Budget expense: {description}")
 
-    conn.commit()
-    conn.close()
+    db.session.commit()
 
 
 def get_budget_transactions(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """SELECT bt.*, bc.name as category_name, s.savings_name
-           FROM budget_transactions bt
-           JOIN budget_categories bc ON bt.category_id = bc.id
-           LEFT JOIN savings s ON bt.savings_id = s.id
-           WHERE bt.user_id=?
-           ORDER BY bt.created_at DESC""",
-        (user_id,),
+    # Perform a Join to get Category Name and Savings Name
+    results = (
+        db.session.query(BudgetTransaction, BudgetCategory.name, Savings.savings_name)
+        .join(BudgetCategory, BudgetTransaction.category_id == BudgetCategory.id)
+        .outerjoin(Savings, BudgetTransaction.savings_id == Savings.id)
+        .filter(BudgetTransaction.user_id == user_id)
+        .order_by(BudgetTransaction.created_at.desc())
+        .all()
     )
-    txns = c.fetchall()
-    conn.close()
-    return [dict(t) for t in txns]
+
+    txns = []
+    for txn, cat_name, sav_name in results:
+        t_dict = to_dict(txn)
+        t_dict["category_name"] = cat_name
+        t_dict["savings_name"] = sav_name
+        txns.append(t_dict)
+    return txns
 
 
 def get_actual_spent(user_id, category_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """SELECT IFNULL(SUM(amount), 0) as actual_spent
-           FROM budget_transactions
-           WHERE user_id=? AND category_id=?""",
-        (user_id, category_id),
+    result = (
+        db.session.query(db.func.sum(BudgetTransaction.amount))
+        .filter_by(user_id=user_id, category_id=category_id)
+        .scalar()
     )
-    result = c.fetchone()
-    conn.close()
-    return result["actual_spent"] if result else 0
-
-
-def get_category_summary(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """SELECT bc.id, bc.name, bc.planned_budget,
-                  IFNULL(SUM(bt.amount),0) as actual_spent
-           FROM budget_categories bc
-           LEFT JOIN budget_transactions bt ON bc.id = bt.category_id
-           WHERE bc.user_id=?
-           GROUP BY bc.id
-           ORDER BY bc.name""",
-        (user_id,),
-    )
-    rows = c.fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
-
-
-def get_expense_totals_by_type(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """SELECT expense_type, IFNULL(SUM(amount),0) as total
-           FROM budget_transactions
-           WHERE user_id=?
-           GROUP BY expense_type""",
-        (user_id,),
-    )
-    rows = c.fetchall()
-    conn.close()
-
-    totals = {"daily": 0, "monthly": 0, "yearly": 0}
-    for r in rows:
-        totals[r["expense_type"]] = r["total"]
-    return totals
+    return result or 0
 
 
 def delete_budget_transaction(txn_id, user_id):
-    """Delete a budget transaction safely (only if it belongs to the user)."""
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    txn = BudgetTransaction.query.filter_by(id=txn_id, user_id=user_id).first()
+    if txn:
+        db.session.delete(txn)
+        db.session.commit()
 
-    cursor.execute(
-        """
-        DELETE FROM budget_transactions
-        WHERE id = ? AND user_id = ?
-        """,
-        (txn_id, user_id),
+
+def get_category_summary(user_id):
+    """Returns categories with their planned budget AND actual spent."""
+    categories = (
+        BudgetCategory.query.filter_by(user_id=user_id)
+        .order_by(BudgetCategory.name)
+        .all()
+    )
+    summary = []
+    for cat in categories:
+        spent = (
+            db.session.query(db.func.sum(BudgetTransaction.amount))
+            .filter_by(category_id=cat.id)
+            .scalar()
+            or 0
+        )
+        summary.append(
+            {
+                "id": cat.id,
+                "name": cat.name,
+                "planned_budget": cat.planned_budget,
+                "actual_spent": spent,
+            }
+        )
+    return summary
+
+
+def get_expense_totals_by_type(user_id):
+    """Returns totals for daily, monthly, yearly expenses."""
+    results = (
+        db.session.query(
+            BudgetTransaction.expense_type, db.func.sum(BudgetTransaction.amount)
+        )
+        .filter_by(user_id=user_id)
+        .group_by(BudgetTransaction.expense_type)
+        .all()
     )
 
-    conn.commit()
-    conn.close()
+    totals = {"daily": 0, "monthly": 0, "yearly": 0}
+    for type_, total in results:
+        totals[type_] = total or 0
+    return totals
 
 
-def update_budget_category(user_id, category_id, planned_budget):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "UPDATE budget_categories SET planned_budget=? WHERE id=? AND user_id=?",
-        (planned_budget, category_id, user_id),
-    )
-    conn.commit()
-    conn.close()
-
-
-# ------------------ PROFILE FUNCTIONS ------------------
-
-
-def create_profile_table():
-    """Ensure the user_profiles table exists (call inside init_db)."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        """CREATE TABLE IF NOT EXISTS user_profiles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER UNIQUE,
-            surname TEXT NOT NULL,
-            firstname TEXT NOT NULL,
-            middle_initial TEXT,
-            nickname TEXT,
-            occupation TEXT,
-            company TEXT,
-            salary REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )"""
-    )
-    conn.commit()
-    conn.close()
+# ==========================================
+# 7. PROFILE & CARD FUNCTIONS
+# ==========================================
 
 
 def get_profile(user_id):
-    """Fetch a user profile by user_id."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM user_profiles WHERE user_id=?", (user_id,))
-    profile = c.fetchone()
-    conn.close()
-    return dict(profile) if profile else None
+    profile = UserProfile.query.filter_by(user_id=user_id).first()
+    return to_dict(profile)
 
 
 def save_personal_info(user_id, surname, firstname, middle_initial, nickname):
-    """Insert or update personal info."""
-    conn = get_db_connection()
-    c = conn.cursor()
-
-    c.execute("SELECT id FROM user_profiles WHERE user_id=?", (user_id,))
-    exists = c.fetchone()
-
-    if exists:
-        c.execute(
-            """UPDATE user_profiles 
-               SET surname=?, firstname=?, middle_initial=?, nickname=?, updated_at=? 
-               WHERE user_id=?""",
-            (surname, firstname, middle_initial, nickname, datetime.utcnow(), user_id),
-        )
+    profile = UserProfile.query.filter_by(user_id=user_id).first()
+    if profile:
+        profile.surname = surname
+        profile.firstname = firstname
+        profile.middle_initial = middle_initial
+        profile.nickname = nickname
+        profile.updated_at = datetime.utcnow()
     else:
-        c.execute(
-            """INSERT INTO user_profiles 
-               (user_id, surname, firstname, middle_initial, nickname) 
-               VALUES (?, ?, ?, ?, ?)""",
-            (user_id, surname, firstname, middle_initial, nickname),
+        new_profile = UserProfile(
+            user_id=user_id,
+            surname=surname,
+            firstname=firstname,
+            middle_initial=middle_initial,
+            nickname=nickname,
         )
-
-    conn.commit()
-    conn.close()
+        db.session.add(new_profile)
+    db.session.commit()
 
 
 def save_work_info(user_id, occupation, company, salary):
-    """Insert or update work info (occupation, company, salary)."""
-    conn = get_db_connection()
-    c = conn.cursor()
-
-    c.execute("SELECT id FROM user_profiles WHERE user_id=?", (user_id,))
-    exists = c.fetchone()
-
-    if exists:
-        c.execute(
-            """UPDATE user_profiles
-               SET occupation=?, company=?, salary=?, updated_at=?
-               WHERE user_id=?""",
-            (occupation, company, salary, datetime.utcnow(), user_id),
-        )
+    profile = UserProfile.query.filter_by(user_id=user_id).first()
+    if profile:
+        profile.occupation = occupation
+        profile.company = company
+        profile.salary = salary
+        profile.updated_at = datetime.utcnow()
     else:
-        c.execute(
-            """INSERT INTO user_profiles 
-               (user_id, surname, firstname, middle_initial, nickname, occupation, company, salary)
-               VALUES (?, '', '', '', '', ?, ?, ?)""",
-            (user_id, occupation, company, salary),
+        new_profile = UserProfile(
+            user_id=user_id,
+            surname="",
+            firstname="",
+            occupation=occupation,
+            company=company,
+            salary=salary,
         )
-
-    conn.commit()
-    conn.close()
-
-
-def get_total_savings(user_id):
-    """Get the sum of all savings balances for a user."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT SUM(current_balance) FROM savings WHERE user_id=?", (user_id,))
-    total = c.fetchone()[0]
-    conn.close()
-    return total or 0
+        db.session.add(new_profile)
+    db.session.commit()
 
 
 def get_total_debt(user_id):
-    """Get the sum of all outstanding loan balances for a user."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "SELECT SUM(amount - paid_amount) FROM loans WHERE user_id=? AND status != 'Full Loan Paid'",
-        (user_id,),
-    )
-    total = c.fetchone()[0]
-    conn.close()
-    return total or 0
+    active_loans = Loan.query.filter(
+        Loan.user_id == user_id, Loan.status != "Full Loan Paid"
+    ).all()
+    total_debt = sum(l.amount - l.paid_amount for l in active_loans)
+    return total_debt
 
-def delete_savings(savings_id):
-    """Delete a savings goal and its history."""
-    conn = get_db_connection()
-    c = conn.cursor()
-    # Optional: Delete transactions related to this savings first (clean up)
-    # c.execute("DELETE FROM savings_transactions WHERE savings_id=?", (savings_id,))
-    c.execute("DELETE FROM savings WHERE id=?", (savings_id,))
-    conn.commit()
-    conn.close()
-
-    # --- PASTE THIS AT THE BOTTOM OF models.py ---
 
 def add_card(user_id, bank_name, card_type, last_four, balance, color_theme, usage_tag):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO cards (user_id, bank_name, card_type, last_four, balance, color_theme, usage_tag) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (user_id, bank_name, card_type, last_four, balance, color_theme, usage_tag),
+    new_card = Card(
+        user_id=user_id,
+        bank_name=bank_name,
+        card_type=card_type,
+        last_four=last_four,
+        balance=balance,
+        color_theme=color_theme,
+        usage_tag=usage_tag,
     )
-    conn.commit()
-    conn.close()
+    db.session.add(new_card)
+    db.session.commit()
+
 
 def get_user_cards(user_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("SELECT * FROM cards WHERE user_id=?", (user_id,))
-    return c.fetchall()
+    cards = Card.query.filter_by(user_id=user_id).all()
+    return [to_dict(c) for c in cards]
+
 
 def delete_card(card_id):
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute("DELETE FROM cards WHERE id=?", (card_id,))
-    conn.commit()
-    conn.close()
+    card = Card.query.get(card_id)
+    if card:
+        db.session.delete(card)
+        db.session.commit()
+
+
+# ==========================================
+# 8. SMART BUDGETTER MODELS (NEW)
+# ==========================================
+
+
+class SalaryBudget(db.Model):
+    __tablename__ = "salary_budgets"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    salary_amount = db.Column(db.Float, nullable=False)
+    frequency = db.Column(db.String(50), nullable=False)  # Semi-Monthly, Weekly, etc.
+    total_allocated = db.Column(db.Float, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ai_reasoning = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship to items
+    items = db.relationship(
+        "SalaryBudgetItem", backref="budget", lazy=True, cascade="all, delete-orphan"
+    )
+
+
+class SalaryBudgetItem(db.Model):
+    __tablename__ = "salary_budget_items"
+    id = db.Column(db.Integer, primary_key=True)
+    budget_id = db.Column(
+        db.Integer, db.ForeignKey("salary_budgets.id"), nullable=False
+    )
+    item_name = db.Column(db.String(100), nullable=False)
+    user_amount = db.Column(db.Float, default=0)  # What user manually typed
+    ai_amount = db.Column(db.Float, default=0)  # What system suggested
+    is_auto_filled = db.Column(db.Boolean, default=False)
+
+
+# ... (Keep your helper functions like to_dict, create_user, etc.) ...
+
+# --- ADD THESE NEW FUNCTIONS AT THE END OF models.py ---
+
+
+def create_salary_budget(user_id, salary_amount, frequency, ai_reasoning=""):
+    new_budget = SalaryBudget(
+        user_id=user_id,
+        salary_amount=salary_amount,
+        frequency=frequency,
+        ai_reasoning=ai_reasoning,  # <--- Pass it here
+    )
+    db.session.add(new_budget)
+    db.session.commit()
+    return new_budget
+
+
+def add_salary_item(budget_id, item_name, user_amount, ai_amount, is_auto_filled):
+    item = SalaryBudgetItem(
+        budget_id=budget_id,
+        item_name=item_name,
+        user_amount=user_amount,
+        ai_amount=ai_amount,
+        is_auto_filled=is_auto_filled,
+    )
+    db.session.add(item)
+    db.session.commit()
+
+
+def get_user_budgets(user_id):
+    # Get latest 5 budgets for history
+    return (
+        SalaryBudget.query.filter_by(user_id=user_id)
+        .order_by(SalaryBudget.created_at.desc())
+        .limit(5)
+        .all()
+    )
+
+
+def get_budget_details(budget_id):
+    budget = SalaryBudget.query.get(budget_id)
+    if budget:
+        return {"info": to_dict(budget), "items": [to_dict(i) for i in budget.items]}
+    return None

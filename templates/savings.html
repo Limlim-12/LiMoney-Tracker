@@ -105,43 +105,31 @@
         View Transaction History ↓
       </button>
 
-      <div
-        id="hist-{{ goal.id }}"
-        class="history-dropdown"
-        style="display: none"
-      >
-        {% set history = get_savings_transactions(goal.id) %} {% if history %}
+      <div id="hist-{{ goal.id }}" class="history-dropdown" style="display: none">
+        {% set history = get_savings_transactions(goal.id) %}
+        {% if history %}
         <ul class="history-list">
           {% for txn in history %}
-          <li
-            class="history-item {{ 'deposit' if txn.type == 'deposit' else 'withdraw' }}"
-          >
+          <li class="history-item {{ 'deposit' if txn.type == 'deposit' else 'withdraw' }}">
+        
             <div class="history-left">
               <span class="history-type">
-                {{ '⬇️ Deposit' if txn.type == 'deposit' else '⬆️ Withdrawal' }}
+                {{ 'Deposit' if txn.type == 'deposit' else 'Withdrawal' }}
               </span>
-              <span
-                class="history-date local-time"
-                data-utc="{{ txn.created_at }}"
-              >
-                📅 {{ txn.created_at }}
+              <span class="history-date local-time" data-utc="{{ txn.timestamp }}">
+                {{ txn.timestamp }}
               </span>
             </div>
-
-            <span
-              class="history-amount {{ 'text-success' if txn.type == 'deposit' else 'text-danger' }}"
-            >
-              {{ '+' if txn.type == 'deposit' else '-' }}₱{{
-              "%.2f"|format(txn.amount) }}
+        
+            <span class="history-amount {{ 'text-success' if txn.type == 'deposit' else 'text-danger' }}">
+              {{ '+' if txn.type == 'deposit' else '-' }}₱{{ "%.2f"|format(txn.amount) }}
             </span>
           </li>
           {% endfor %}
         </ul>
         {% else %}
-        <div
-          style="text-align: center; padding: 1rem; color: var(--text-light)"
-        >
-          <p style="margin: 0">No transactions yet.</p>
+        <div style="text-align: center; padding: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+          <p style="margin: 0; opacity: 0.7;">No transactions yet.</p>
         </div>
         {% endif %}
       </div>
@@ -250,25 +238,22 @@
     const el = document.getElementById(id);
     if (el.style.display === "none") {
       el.style.display = "block";
-      // Update times only when opening to save performance
       updateTimes(el);
     } else {
       el.style.display = "none";
     }
   }
 
+  // Same logic as Loan Tracker
   function updateTimes(container) {
     const timeElements = container.querySelectorAll(".local-time");
     timeElements.forEach((el) => {
       const utcRaw = el.dataset.utc;
-      if (!utcRaw) return;
+      if (!utcRaw || utcRaw === 'None') return;
 
-      // Convert SQL UTC string (YYYY-MM-DD HH:MM:SS) to JS Date Object
-      // We replace space with 'T' and add 'Z' to tell JS "This is UTC"
+      // Convert SQL string (YYYY-MM-DD HH:MM:SS) to ISO
       const utcDate = new Date(utcRaw.replace(" ", "T") + "Z");
 
-      // Format to local user friendly style
-      // Example: "Feb 8, 2026, 1:55 PM"
       const options = {
         month: "short",
         day: "numeric",
@@ -276,7 +261,10 @@
         minute: "2-digit",
         hour12: true,
       };
-      el.innerText = "📅 " + utcDate.toLocaleDateString(undefined, options);
+
+      if (!isNaN(utcDate.getTime())) {
+        el.innerText = "📅 " + utcDate.toLocaleDateString(undefined, options);
+      }
     });
   }
 
@@ -284,22 +272,16 @@
   let formToDelete = null;
 
   function confirmAction(event, form, name, type) {
-    event.preventDefault(); // Stop default form submit
+    event.preventDefault();
     formToDelete = form;
-
-    // Update Modal Text
     document.getElementById("confirmTitle").innerText = `Delete ${type}?`;
     document.getElementById("confirmText").innerText =
       `Are you sure you want to delete "${name}"? This action cannot be undone.`;
-
-    // Show Modal
     document.getElementById("confirmModal").style.display = "flex";
   }
 
   function executeDelete() {
-    if (formToDelete) {
-      formToDelete.submit(); // Actually delete
-    }
+    if (formToDelete) formToDelete.submit();
   }
 
   function closeConfirmModal() {
@@ -341,7 +323,6 @@
     document.getElementById(id).style.display = "none";
   }
 
-  // Close on background click
   window.onclick = function (event) {
     if (event.target.classList.contains("modal-overlay")) {
       event.target.style.display = "none";
@@ -350,20 +331,10 @@
 
   // --- 4. Smart Icons Logic ---
   const savingsMap = {
-    Emergency: "🚑",
-    Rainy: "☔",
-    Car: "🚗",
-    Bike: "🏍️",
-    House: "🏠",
-    Travel: "✈️",
-    Trip: "🗺️",
-    Phone: "📱",
-    Computer: "💻",
-    Gift: "🎁",
-    School: "🎓",
-    Wedding: "💍",
-    Invest: "📈",
-    Bank: "🏦",
+    Emergency: "🚑", Rainy: "☔", Car: "🚗", Bike: "🏍️",
+    House: "🏠", Travel: "✈️", Trip: "🗺️", Phone: "📱",
+    Computer: "💻", Gift: "🎁", School: "🎓", Wedding: "💍",
+    Invest: "📈", Bank: "🏦",
   };
 
   document.querySelectorAll(".goal-icon").forEach((el) => {
@@ -377,7 +348,6 @@
   });
 
   // --- View Toggle Logic ---
-  // 1. Check LocalStorage on load
   document.addEventListener("DOMContentLoaded", () => {
     const savedView = localStorage.getItem("savingsView") || "grid";
     setView(savedView);
@@ -397,8 +367,6 @@
       btnGrid.classList.add("active");
       btnStack.classList.remove("active");
     }
-
-    // Save preference
     localStorage.setItem("savingsView", viewType);
   }
 </script>

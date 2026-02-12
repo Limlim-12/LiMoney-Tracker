@@ -1707,7 +1707,10 @@ textarea {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+
+  /* FIX: Increased to 2000 to appear ABOVE the Bottom Nav (1000) and FAB (1001) */
+  z-index: 2000;
+
   backdrop-filter: blur(5px);
   animation: fadeIn 0.2s ease-out;
 }
@@ -1763,6 +1766,36 @@ textarea {
 
   to {
     opacity: 1;
+  }
+}
+
+/* --- Mobile Bottom Sheet Style --- */
+@media (max-width: 500px) {
+
+  .modal-content,
+  .modal-content.confirmation {
+    width: 95%;
+    max-width: 100%;
+    bottom: 10px;
+    margin: auto;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    padding: 1.5rem;
+
+    /* FIX: Add extra padding at the bottom for scrolling space */
+    padding-bottom: 3rem;
+  }
+
+  /* Bigger Touch Targets for Actions */
+  .confirm-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .confirm-actions button {
+    width: 100%;
+    padding: 16px;
   }
 }
 
@@ -2210,35 +2243,20 @@ textarea {
   font-size: 0.85rem;
   cursor: pointer;
   border-radius: 8px;
+  transition: all 0.2s;
+  margin-top: 10px;
+  /* Added spacing */
 }
 
 .view-history-btn:hover {
   background: var(--bg-light);
   color: var(--text-primary);
+  border-color: var(--primary-color);
 }
 
-.history-dropdown {
-  background: var(--bg-light);
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  max-height: 150px;
-  overflow-y: auto;
-}
 
-.history-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
 
-.history-list li {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
+
 
 /* --- Finished Loans --- */
 .finished-section {
@@ -2755,11 +2773,44 @@ textarea {
   color: var(--primary-color);
   text-decoration: none;
   font-weight: 600;
+
+  /* FIX: Keep text and arrow on the same line */
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 4px;
 }
 
 .see-all-link:hover {
   text-decoration: underline;
 }
+
+/* Default (PC): Show "Manage Cards" */
+.desktop-label {
+  display: inline-block;
+}
+
+.mobile-label {
+  display: none;
+}
+
+/* Mobile: Show "Manage Cards & Profile" */
+@media (max-width: 900px) {
+  .desktop-label {
+    display: none;
+  }
+
+  .mobile-label {
+    display: inline-block;
+  }
+
+  /* Optional: Slightly smaller text on very small phones */
+  .see-all-link {
+    font-size: 0.85rem;
+  }
+}
+
+/* <--- THIS WAS MISSING! This closes the media query. */
 
 /* Carousel Container */
 .mini-wallet-carousel {
@@ -2767,10 +2818,8 @@ textarea {
   gap: 1rem;
   overflow-x: auto;
   padding: 0.5rem 0.5rem 1.5rem 0.5rem;
-  /* Padding for shadow/hover space */
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  /* Smooth iOS scroll */
 }
 
 /* Hide scrollbar but keep functionality */
@@ -2786,9 +2835,7 @@ textarea {
 /* --- Mini Credit Card (Variant) --- */
 .credit-card.small {
   flex: 0 0 240px;
-  /* Smaller fixed width */
   height: 150px;
-  /* Smaller height */
   padding: 18px;
   border-radius: 16px;
 }
@@ -2841,22 +2888,148 @@ textarea {
   margin-bottom: 5px;
 }
 
-/* Mobile Optimization for Wallet */
+/* ===================================================================
+   PREMIUM MOBILE WALLET (Crisp & Detailed)
+   =================================================================== */
+
 @media (max-width: 600px) {
+
+  /* 1. Carousel Container */
   .mini-wallet-carousel {
+    display: flex;
+    gap: 1.25rem;
+    /* More breathing room between cards */
+    padding: 0.5rem 1.5rem 2rem 1.5rem;
+    /* Extra bottom padding for deep shadows */
     scroll-snap-type: x mandatory;
-    padding-right: 20px;
-    /* Peek effect */
+    /* Physics snapping */
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
+  /* 2. Premium Card Dimensions */
   .credit-card.small {
-    flex: 0 0 220px;
-    height: 140px;
-    scroll-snap-align: start;
+    flex: 0 0 85vw;
+    /* Takes up 85% of the screen width */
+    max-width: 340px;
+    /* Don't get too huge on phablets */
+    height: 200px;
+    /* Full height for detail visibility */
+    scroll-snap-align: center;
+    /* Focus center */
+
+    /* Layout & Spacing */
+    padding: 24px;
+    border-radius: 24px;
+    /* Smoother corners */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    /* Premium Depth */
+    box-shadow:
+      0 15px 35px -5px rgba(0, 0, 0, 0.25),
+      /* Deep shadow */
+      0 8px 10px -5px rgba(0, 0, 0, 0.1);
+    /* Sharp shadow */
+
+    /* Disable 3D tilt on mobile for crisp text */
+    transform: none !important;
+    transition: transform 0.2s ease;
   }
 
+  /* Active Press Effect (Tactile Feel) */
+  .credit-card.small:active {
+    transform: scale(0.97) !important;
+  }
+
+  /* 3. Typography Upgrades (Crisp Text) */
+  .credit-card.small .bank-name {
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    opacity: 0.95;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .credit-card.small .card-number {
+    font-size: 1.4rem;
+    /* Larger and crisper */
+    font-family: 'Courier New', monospace;
+    letter-spacing: 4px;
+    /* Wider spacing */
+    font-weight: 700;
+    margin-top: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .credit-card.small .card-balance small {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    opacity: 0.9;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .credit-card.small .card-balance span {
+    font-size: 1.6rem;
+    /* Big, readable balance */
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  /* 4. Detailed Elements */
+  .credit-card.small .card-chip.small {
+    width: 45px;
+    height: 34px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #fcd34d, #d97706);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
+    margin-top: 5px;
+  }
+
+  /* 5. "Add Card" Button (Vertical Strip Style) */
   .add-card-placeholder {
-    scroll-snap-align: start;
+    flex: 0 0 80px;
+    /* Slim vertical strip at the end */
+    height: 200px;
+    /* Match card height */
+    scroll-snap-align: center;
+    border-radius: 20px;
+    border: 2px dashed var(--border-color);
+
+    /* Glass Effect */
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+
+    /* Centering */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+
+  /* Icon inside placeholder */
+  .add-card-placeholder .plus-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-body);
+    /* Contrast circle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -2941,90 +3114,209 @@ textarea {
 }
 
 /* ===================================================================
-   TRANSACTION HISTORY (Modern Design)
+   TRANSACTION & PAYMENT HISTORY (Clean Timeline v3)
    =================================================================== */
 
-.history-dropdown {
-  background: var(--bg-white);
-  margin-top: 1rem;
-  padding: 0.5rem;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  animation: fadeIn 0.3s ease-out;
+/* --- 1. The Toggle Button --- */
+.view-history-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 12px;
+  background-color: transparent;
+  color: var(--text-light);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
+.view-history-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+}
+
+/* --- 2. The Dropdown Container --- */
+.history-dropdown {
+  margin-top: 15px;
+  padding: 20px 15px 20px 15px;
+  /* More padding */
+  background: var(--bg-hover);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  animation: slideDownSmooth 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* The Vertical Timeline Line */
+.history-dropdown::before {
+  content: '';
+  position: absolute;
+  top: 25px;
+  bottom: 25px;
+  left: 29px;
+  /* Fixed position for line */
+  width: 2px;
+  background: var(--border-color);
+  z-index: 0;
+}
+
+/* --- 3. The List --- */
 .history-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 300px;
+  gap: 16px;
+  /* Increased gap to reduce congestion */
+  max-height: 350px;
   overflow-y: auto;
+  padding-right: 5px;
+  position: relative;
+  z-index: 1;
 }
 
+/* --- 4. History Item (Card) --- */
 .history-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--bg-light);
-  transition:
-    transform 0.2s,
-    background 0.2s;
-  border-left: 4px solid transparent;
+  padding: 14px 16px;
+  /* More breathing room inside card */
+  background: var(--bg-white);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+
+  /* Critical: Push card to right of the line */
+  margin-left: 35px;
+  position: relative;
+  transition: transform 0.2s;
 }
 
 .history-item:hover {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transform: translateX(2px);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: var(--primary-color);
 }
 
-/* Color Coding Borders */
-.history-item.deposit {
-  border-left-color: var(--success-color);
+/* The "Dot" on the Timeline */
+.history-item::before {
+  content: '';
+  position: absolute;
+  left: -42px;
+  /* Move dot onto the line (Calculated: 35px margin + 7px offset) */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-white);
+  border: 3px solid var(--text-light);
+  z-index: 2;
+  box-shadow: 0 0 0 4px var(--bg-hover);
+  /* Creates a "gap" around the dot */
 }
 
-.history-item.withdraw {
-  border-left-color: var(--danger-color);
+/* Color Coding */
+.history-item.deposit::before {
+  border-color: var(--success-color);
 }
 
+.history-item.withdraw::before {
+  border-color: var(--danger-color);
+}
+
+/* --- 5. Typography --- */
 .history-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .history-type {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  /* Slightly larger */
+  font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.2;
 }
 
 .history-date {
   font-size: 0.75rem;
   color: var(--text-light);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-family: var(--font-primary);
+  font-weight: 500;
 }
 
 .history-amount {
+  font-family: 'Courier New', monospace;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  letter-spacing: -0.5px;
 }
 
-/* Scrollbar styling for history */
-.history-list::-webkit-scrollbar {
-  width: 4px;
+/* --- Mobile Optimization --- */
+@media (max-width: 600px) {
+  .history-dropdown {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  /* Adjust line position for mobile */
+  .history-dropdown::before {
+    left: 24px;
+  }
+
+  /* Adjust card position for mobile */
+  .history-item {
+    margin-left: 30px;
+    padding: 12px 14px;
+  }
+
+  /* Adjust dot position for mobile */
+  .history-item::before {
+    left: -37px;
+    width: 10px;
+    height: 10px;
+    border-width: 2px;
+  }
+
+  .history-type {
+    font-size: 0.9rem;
+  }
+
+  .history-date {
+    font-size: 0.7rem;
+  }
 }
 
-.history-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+/* --- Dark Mode --- */
+[data-theme="dark"] .history-dropdown {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .history-dropdown::before {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .history-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .history-item::before {
+  background: #1e293b;
+  /* Match dark card bg */
+  box-shadow: 0 0 0 4px rgba(30, 41, 59, 1);
+  /* Dark "gap" mask */
 }
 
 /* ===================================================================
@@ -4999,6 +5291,957 @@ input[type="password"]::-webkit-password-reveal-button {
   }
 }
 
+.item-row input {
+  width: 100%;
+}
+
+
+
+/* ===================================================================
+   SMART BUDGET ARCHITECT - FINAL PREMIUM DESIGN
+   =================================================================== */
+
+/* --- Layout Wrappers --- */
+.smart-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+}
+
+.smart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-pulse {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2));
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.smart-header h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  background: linear-gradient(to right, var(--text-primary), var(--primary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+
+.smart-header p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+/* --- Main Grid --- */
+.smart-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  /* Left side bigger */
+  gap: 2rem;
+}
+
+/* --- Cards --- */
+.smart-card {
+  background: var(--bg-white);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+  /* Soft floating shadow */
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.config-card {
+  border-top: 4px solid var(--primary-color);
+}
+
+.result-card {
+  border-top: 4px solid #a855f7;
+  /* Purple accent for AI */
+}
+
+.card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.card-title h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.step-badge {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary-color);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* --- Inputs & Forms --- */
+.section-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.8rem;
+}
+
+.row-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.input-group {
+  position: relative;
+  flex: 1;
+}
+
+.input-group.full-width {
+  flex: 1.5;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.modern-input {
+  width: 100%;
+  padding: 14px 14px 14px 35px;
+  border-radius: 12px;
+  border: 2px solid var(--bg-body);
+  background: var(--bg-body);
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+.modern-select {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid var(--bg-body);
+  background: var(--bg-body);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.modern-input:focus,
+.modern-select:focus {
+  background: var(--bg-white);
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.projection-tag {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background: var(--border-color);
+  margin: 1.5rem 0;
+}
+
+/* --- Floating Expense Rows --- */
+.chips-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.chip {
+  background: var(--bg-body);
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+}
+
+.expense-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.expense-row {
+  display: flex;
+  align-items: center;
+  background: var(--bg-hover);
+  /* Slightly darker/lighter depending on theme */
+  border-radius: 12px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.expense-row:hover,
+.expense-row:focus-within {
+  background: var(--bg-white);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateX(2px);
+}
+
+.row-input {
+  border: none;
+  background: transparent;
+  padding: 10px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.row-input:focus {
+  outline: none;
+}
+
+.row-input.name {
+  flex: 2;
+  font-weight: 500;
+}
+
+.amount-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid var(--border-color);
+  padding-left: 10px;
+}
+
+.amount-group span {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.row-remove {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+
+.row-remove:hover {
+  color: var(--danger-color);
+}
+
+.add-row-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 12px;
+  border: 2px dashed var(--border-color);
+  background: transparent;
+  color: var(--text-light);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.add-row-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* --- Health Meter --- */
+.health-meter-box {
+  margin-top: 1.5rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.02));
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.meter-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.meter-track {
+  height: 10px;
+  background: var(--bg-body);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.meter-fill.success {
+  background: var(--success-color);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+.meter-fill.danger {
+  background: var(--danger-color);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.meter-caption {
+  text-align: center;
+  font-size: 0.75rem;
+  margin: 8px 0 0 0;
+  color: var(--text-light);
+}
+
+/* --- Results & AI Box --- */
+.ai-box {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(232, 121, 249, 0.05));
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.ai-icon {
+  font-size: 1.5rem;
+}
+
+.ai-content h4 {
+  margin: 0 0 0.5rem 0;
+  color: #9333ea;
+}
+
+.ai-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Modern Table */
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.modern-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  padding: 0 10px;
+}
+
+.modern-table td {
+  padding: 12px 10px;
+  background: var(--bg-body);
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+
+.modern-table tr td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.modern-table tr td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.modern-table .cat-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.auto-tag {
+  font-size: 0.65rem;
+  background: rgba(168, 85, 247, 0.1);
+  color: #9333ea;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 5px;
+  text-transform: uppercase;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.dim {
+  color: var(--text-light);
+}
+
+.strong-val {
+  font-weight: 700;
+  color: #9333ea;
+}
+
+.total-val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Buttons */
+.action-btn-main {
+  background: linear-gradient(135deg, var(--primary-color), #2563eb);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-btn-main:hover {
+  transform: translateY(-3px);
+}
+
+.save-blueprint-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--text-primary);
+  /* Dark button */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.save-blueprint-btn:hover {
+  background: #000;
+}
+
+/* Darker on hover */
+
+/* Empty State */
+.empty-ai-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-light);
+}
+
+.robot-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+  opacity: 0.5;
+}
+
+/* History List */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hist-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+}
+
+.hist-freq {
+  display: block;
+  font-weight: 600;
+}
+
+.hist-date {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.hist-amt {
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.hist-link {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .smart-card {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .modern-input,
+[data-theme="dark"] .modern-select {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+[data-theme="dark"] .chip {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .expense-row {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .expense-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .modern-table td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="dark"] .save-blueprint-btn {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .smart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .smart-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .action-btn-main {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+
+/* ===================================================================
+   RESPONSIVE TEXT UTILITIES (For Dashboard Links)
+   =================================================================== */
+
+/* Default (PC): Show "Manage Cards", Hide "Profile" text */
+.desktop-label {
+  display: inline;
+}
+
+.mobile-label {
+  display: none;
+}
+
+/* Mobile: Flip the visibility */
+@media (max-width: 900px) {
+  .desktop-label {
+    display: none;
+  }
+
+  .mobile-label {
+    display: inline;
+  }
+}
+
+
+/* ===================================================================
+   UNIFIED PREMIUM DROPDOWNS (Selects - FIXED)
+   =================================================================== */
+
+.premium-select {
+  width: 100%;
+  padding: 14px 40px 14px 16px;
+  /* Extra padding right for the arrow */
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+
+  /* Glass/Clean Background */
+  background-color: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+
+  /* --- FIX: PREVENT ARROW REPEATING --- */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* Light Mode Arrow */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+
+  /* Force single image */
+  background-repeat: no-repeat !important;
+  background-position: right 16px center !important;
+  background-size: 1.2em !important;
+
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Hover State */
+.premium-select:hover {
+  border-color: var(--primary-color);
+  background-color: var(--bg-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Focus State */
+.premium-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  background-color: var(--bg-white);
+}
+
+/* --- Dark Mode Adaptation --- */
+[data-theme="dark"] .premium-select {
+  background-color: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+
+  /* Dark Mode Arrow (Light Gray) */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+[data-theme="dark"] .premium-select:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary-color);
+}
+
+/* Dropdown Options */
+.premium-select option {
+  background-color: var(--bg-white);
+  color: var(--text-primary);
+  padding: 12px;
+}
+
+[data-theme="dark"] .premium-select option {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* ===================================================================
+   AI CHAT ARCHITECT - PREMIUM STYLES
+   =================================================================== */
+
+/* --- 1. Chat Container --- */
+.ai-chat-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 2rem;
+  padding: 5px;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- 2. AI Avatar Styling --- */
+.ai-avatar {
+  flex-shrink: 0;
+}
+
+.ai-avatar .icon-pulse.small {
+  width: 48px;
+  height: 48px;
+  font-size: 1.4rem;
+  background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* --- 3. The Chat Bubble --- */
+.ai-bubble {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  border-radius: 4px 24px 24px 24px;
+  /* Distinct chat shape */
+  box-shadow: var(--shadow-sm);
+  flex-grow: 1;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.ai-bubble:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* --- 4. Bubble Typography --- */
+.ai-bubble-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  padding-bottom: 6px;
+}
+
+.ai-bubble-header strong {
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.ai-time {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ai-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-family: var(--font-primary);
+}
+
+/* --- 5. Premium Dark Mode (Glassmorphism) --- */
+[data-theme="dark"] .ai-bubble {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .ai-text {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .ai-bubble-header {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- 6. Mobile Optimization --- */
+@media (max-width: 600px) {
+  .ai-chat-section {
+    gap: 10px;
+  }
+
+  .ai-avatar .icon-pulse.small {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+
+  .ai-bubble {
+    padding: 1rem;
+    border-radius: 4px 18px 18px 18px;
+  }
+
+  .ai-text {
+    font-size: 0.9rem;
+  }
+
+  .ai-bubble-header strong {
+    font-size: 0.8rem;
+  }
+}
+
+/* --- 7. Animation Fix --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chat Input Styling */
+.chat-input-wrapper {
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+}
+
+.chat-input-wrapper .modern-input {
+  background: var(--bg-white);
+  border-radius: 12px;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+}
+
+.user-msg-bubble {
+  background: var(--primary-color);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 15px 15px 0 15px;
+  margin: 10px 0;
+  align-self: flex-end;
+  display: inline-block;
+  max-width: 80%;
+  float: right;
+  clear: both;
+}
+
+.ai-msg-bubble {
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--text-secondary);
+  padding: 10px 15px;
+  border-radius: 15px 15px 15px 0;
+  margin: 10px 0;
+  display: inline-block;
+  max-width: 80%;
+  float: left;
+  clear: both;
+}
+
+.ai-chat-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 350px;
+  /* Fixed height for scrollable chat */
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.ai-chat-header {
+  padding: 12px 15px;
+  background: rgba(var(--primary-rgb), 0.05);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 85%;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.ai-msg {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.user-msg {
+  background: var(--primary-color);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-input-area {
+  padding: 10px;
+  display: flex;
+  gap: 8px;
+  background: var(--bg-white);
+  border-top: 1px solid var(--border-color);
+}
+
+.chat-input-area input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
+/* Apply Changes Button inside Chat */
+.msg button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.msg button:active {
+  transform: translateY(0);
+}
 
 /* ===================================================================
    RESPONSIVE & MOBILE OPTIMIZATION (Pro Level)

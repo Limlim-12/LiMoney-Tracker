@@ -2,3 +2,5 @@ Flask
 gunicorn
 python-dateutil
 werkzeug
+Flask-SQLAlchemy
+psycopg2-binary
